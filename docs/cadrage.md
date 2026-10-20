@@ -73,6 +73,4 @@ flowchart LR
 | Sources et collecte | *à compléter* |
 | Stockage et qualité | *à compléter* |
 | Regroupement par thèmes | *à compléter* |
-| Livraison, supervision, infrastructure | *à compléter* |
-
-Toute l'équipe relit cette note avant chaque séance.
+| Livraison, supervision, infrastructure | Amsellem Ethan-Noé |
