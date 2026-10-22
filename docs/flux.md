@@ -12,8 +12,10 @@ temps en temps : les éditeurs changent leurs flux sans prévenir.
 | Libération | 200 | RSS 2.0 | 50 | `ETag` faible + `Last-Modified` | non | non | refusé (403) |
 | La Croix | 200, après redirection | RSS 2.0 | 50 | `ETag` + `Last-Modified` | non | non | absent (404) |
 | Les Échos | **403** | – | – | – | – | – | – |
+| La Tribune *(remplace Les Échos)* | 200, après redirection | RSS 2.0 | 20 | `Last-Modified` | non | non | absent (404) |
 | Ouest-France | 200, après redirection | RSS 2.0 | 10 | aucun (`no-store`) | non | **oui**, `content:encoded` | **`tdm-reservation: 1`** |
 | Le Télégramme | **403** (défi Cloudflare) | – | – | – | – | – | – |
+| La Dépêche du Midi *(remplace Le Télégramme)* | 200 | RSS 2.0 | 100 | aucun (`no-cache`) | oui (« Faits divers ») | non | absent (404) |
 | Sud Ouest | 200 | RSS 2.0 | 20 | aucun (`max-age=600`) | non | non | **`tdm-reservation: 1`** |
 | Le Progrès | 200 | RSS 2.0 | 20 | aucun | oui, mais géographiques (« Rhône ») | non | absent (404) |
 
@@ -39,24 +41,33 @@ temps en temps : les éditeurs changent leurs flux sans prévenir.
 6. **Des paramètres de suivi dans les liens.** Ouest-France ajoute
    `?utm_source=fluxpublicactu&utm_medium=fluxrss…`. S'ils changent, le même article
    aurait l'air nouveau. On les retire avant de calculer la clé `(source, lien)`.
-7. **Des adresses qui redirigent.** La Croix (`/RSS` → `/feeds/rss/site.xml`) et
-   Ouest-France (`/rss-en-continu.xml` → `/rss/une`) : `sources.csv` pointe maintenant
-   vers l'adresse finale, ce qui évite une requête de plus à chaque passage.
+7. **Des adresses qui redirigent.** La Croix (`/RSS` → `/feeds/rss/site.xml`),
+   Ouest-France (`/rss-en-continu.xml` → `/rss/une`) et La Tribune
+   (`/rss/rubriques/actualite.html` → `/rss/rubriques/economie-2`) : `sources.csv`
+   pointe vers l'adresse finale, ce qui évite une requête de plus à chaque passage.
 8. **Des pages HTML à la place du flux.** Une page de consentement ou un défi
    anti-robot peut être servi avec un code 200. Un document qui n'est ni RSS ni Atom
    compte comme un échec, sinon une source bloquée passerait pour un flux vide.
 9. **Des sources qui nous bloquent.** Les Échos et Le Télégramme répondent 403 à notre
-   User-Agent. On ne se fait pas passer pour un navigateur : elles s'endorment au bout de
-   3 échecs. **À décider en équipe** : demander l'accès, trouver un autre flux, ou les
-   remplacer (cf. risques du cadrage).
+   User-Agent, sur toutes leurs adresses de flux (le `syndication.lesechos.fr` historique
+   renvoie 503). On ne se fait pas passer pour un navigateur : elles se sont endormies au
+   bout de 3 échecs, puis ont été **remplacées** (22/10/2026) :
+   - Les Échos → **La Tribune**, l'autre quotidien économique national ;
+   - Le Télégramme → **La Dépêche du Midi** : la Bretagne est déjà couverte par
+     Ouest-France, alors que l'Occitanie ne l'était pas.
+
+   Les deux remplaçants répondent à notre User-Agent, n'ont pas de `tdmrep.json`, leur
+   `robots.txt` autorise le flux et ils n'envoient pas le texte intégral. Les sources
+   retirées gardent leur historique en base (`etat` les affiche comme « retirée »).
 10. **Les requêtes conditionnelles sont rares et partielles.** Seuls Libération et La
     Croix envoient un `ETag` ou un `Last-Modified`. Libération ignore `If-None-Match`
     mais répond 304 à `If-Modified-Since`. On envoie donc les deux.
-11. **Des rubriques hétérogènes.** Seuls Le Figaro et Le Progrès ont des `<category>`,
-    et celles du Progrès sont des lieux. Ailleurs, la rubrique vient de l'URL. À revoir
-    au nettoyage (TD 4).
-12. **Pas que de l'actualité.** Le flux « une » d'Ouest-France contient des liens vers
-    `programmetv.ouest-france.fr` : un premier candidat pour `docs/qualite.md`.
+11. **Des rubriques hétérogènes.** Seuls Le Figaro, Le Progrès et La Dépêche ont des
+    `<category>`, et celles du Progrès sont des lieux. Ailleurs, la rubrique vient de
+    l'URL, en sautant les dates, le titre de l'article et les segments génériques
+    (`latribune.fr/article/afrique/…` → `afrique`). À revoir au nettoyage (TD 4).
+12. **Pas que de l'actualité.** Programme TV, bulletins météo, autopromotion,
+    diaporamas… : relevé dans [qualite.md](qualite.md).
 
 ## Conditions des éditeurs
 

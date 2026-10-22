@@ -45,7 +45,7 @@ redémarrage de Docker, tant qu'on ne les a pas arrêtés avec `docker compose d
 bin/dev                                                # tout démarrer + un premier passage
 docker compose logs -f collecteur                      # suivre les journaux (JSON)
 docker compose run --rm collecteur etat                # état des sources, articles par source
-docker compose run --rm collecteur reveiller lesechos  # sortir une source du sommeil
+docker compose run --rm collecteur reveiller lemonde   # sortir une source du sommeil
 docker compose down                                    # tout arrêter (les données restent)
 ```
 

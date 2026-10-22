@@ -27,11 +27,15 @@ tout de suite, puis affiche l'état des sources :
 
 ```
 source        état     dernière réussite     échecs  passages        sommeils  articles
-lemonde       actif    2026-10-22 09:46 UTC  0       1 (0 en échec)  0         16
-lesechos      actif    jamais                1       1 (1 en échec)  0         0
+ladepeche     actif    2026-10-22 10:20 UTC  0       1 (0 en échec)  0         100
+lemonde       actif    2026-10-22 10:08 UTC  0       8 (0 en échec)  0         19
+lesechos      retirée  jamais                3       3 (3 en échec)  1         0
 …
 - lesechos : HTTP 403
 ```
+
+Une source `SOMMEIL` a échoué 3 fois de suite et n'est plus interrogée ; une source
+`retirée` n'est plus dans `sources.csv` mais garde son historique.
 
 - Les articles bruts sont dans `articles_bruts/<source>/<id>.json` (champs décrits dans
   [docs/donnees.md](docs/donnees.md)).
