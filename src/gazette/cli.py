@@ -12,6 +12,7 @@ from datetime import timedelta
 
 from gazette import config, db, journal
 from gazette.collecteur import collect_all
+from gazette.sources import load_sources
 from gazette.stockage import count_items
 
 
@@ -51,7 +52,8 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if bilans and all(b.statut == "echec" for b in bilans) else 0
         elif args.commande == "etat":
             db.migrate(conn)
-            print_report(db.report(conn), cfg.articles_dir)
+            en_service = {s.id for s in load_sources(cfg.sources_file)}
+            print_report(db.report(conn), cfg.articles_dir, en_service)
         elif args.commande == "reveiller":
             if not db.wake_up(conn, args.source):
                 print(f"source inconnue : {args.source}")
@@ -60,7 +62,8 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def print_report(rows: list[dict], articles_dir: str) -> None:
+def print_report(rows: list[dict], articles_dir: str, en_service: set[str] | None = None) -> None:
+    """Une ligne par source ; celles retirées de sources.csv restent, avec leur historique."""
     header = ("source", "état", "dernière réussite", "échecs", "passages", "sommeils", "articles")
     lines = [header]
     for r in rows:
@@ -68,7 +71,7 @@ def print_report(rows: list[dict], articles_dir: str) -> None:
         lines.append(
             (
                 r["id"],
-                "actif" if r["actif"] else "SOMMEIL",
+                _etat(r, en_service),
                 reussite.strftime("%Y-%m-%d %H:%M UTC") if reussite else "jamais",
                 str(r["echecs_consecutifs"]),
                 f"{r['passages']} ({r['echecs']} en échec)",
@@ -82,3 +85,9 @@ def print_report(rows: list[dict], articles_dir: str) -> None:
     for r in rows:
         if r["derniere_erreur"]:
             print(f"- {r['id']} : {r['derniere_erreur']}")
+
+
+def _etat(row: dict, en_service: set[str] | None) -> str:
+    if en_service is not None and row["id"] not in en_service:
+        return "retirée"
+    return "actif" if row["actif"] else "SOMMEIL"

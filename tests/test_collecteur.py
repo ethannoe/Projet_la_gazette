@@ -187,6 +187,9 @@ def test_rapport_etat(conn, feed_server, tmp_path, fetch, capsys):
     assert "SOMMEIL" in sortie
     assert "- panne : HTTP 404" in sortie
 
+    print_report(list(rows.values()), str(tmp_path), en_service={"monde"})
+    assert "retirée" in capsys.readouterr().out
+
 
 def test_delai_minimal_entre_deux_requetes(conn, feed_server, tmp_path, fetch):
     feed_server.route("/monde", body=LEMONDE)
