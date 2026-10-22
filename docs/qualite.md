@@ -21,7 +21,7 @@ Relevé du 22/10/2026 sur les 330 premiers items collectés (9 sources).
 | 9 | lacroix | `14b953bad35462df` | Jean-Paul II, apôtre de la jeunesse et de la liberté | Fiche encyclopédique intemporelle, remontée dans le flux | Chemin du lien en `/Definitions/` |
 | 10 | liberation | `6bcf1ed258dba1b9` | Tempête Austen, interdictions de manifester, présentation du Tour de France… L'actu de ce jeudi | Récapitulatif de plusieurs sujets : il brouillerait le regroupement par thèmes | « L'actu de ce … », titre qui énumère plusieurs sujets |
 
-## À discuter en équipe
+
 
 - **Les directs** (« EN DIRECT », « DIRECT. ») : de la vraie actualité, mais une page dont
   le titre change à chaque mise à jour, sous le même lien. On ne garde que le premier
