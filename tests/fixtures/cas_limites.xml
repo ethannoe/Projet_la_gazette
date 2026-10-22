@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flux fictif écrit à la main : un item par variante rencontrée dans les vrais flux. -->
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>Flux de test</title>
+<link>https://exemple.test/</link>
+<description>Cas limites pour le parseur</description>
+
+<item>
+  <title>Fuseau horaire américain</title>
+  <link>https://exemple.test/fuseau</link>
+  <pubDate>Wed, 21 Oct 2026 22:30:00 -0500</pubDate>
+  <description>Doit être converti en UTC.</description>
+</item>
+
+<item>
+  <title>Article sans date</title>
+  <link>https://exemple.test/sans-date</link>
+  <description>Doit être rejeté.</description>
+</item>
+
+<item>
+  <title>Article sans lien</title>
+  <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <description>Doit être rejeté.</description>
+</item>
+
+<item>
+  <title><![CDATA[Extrait en <b>HTML</b> &amp; entités]]></title>
+  <link>https://exemple.test/html</link>
+  <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <description><![CDATA[<p>Un extrait <a href="https://exemple.test">avec un lien</a>&nbsp;et des    espaces.</p>]]></description>
+</item>
+
+<item>
+  <title>Texte intégral à ignorer</title>
+  <link>https://exemple.test/integral</link>
+  <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <description>Le vrai extrait.</description>
+  <content:encoded><![CDATA[<p>TEXTE INTÉGRAL qui ne doit jamais sortir du parseur.</p>]]></content:encoded>
+</item>
+
+<item>
+  <title>Texte intégral sans extrait</title>
+  <link>https://exemple.test/integral-seul</link>
+  <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <content:encoded><![CDATA[<p>TEXTE INTÉGRAL qui ne doit jamais sortir du parseur.</p>]]></content:encoded>
+</item>
+
+<item>
+  <title>Doublon</title>
+  <link>https://exemple.test/html</link>
+  <pubDate>Thu, 22 Oct 2026 09:00:00 +0200</pubDate>
+  <description>Même URL qu'un item précédent : doit être ignoré.</description>
+</item>
+
+<item>
+  <title>Extrait trop long</title>
+  <link>https://exemple.test/long</link>
+  <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</description>
+</item>
+
+</channel>
+</rss>
