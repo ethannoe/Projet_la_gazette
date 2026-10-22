@@ -1,7 +1,14 @@
 import pytest
 from conftest import FIXTURES
 
-from gazette.parser import MAX_RESUME, FeedError, clean_text, normalize_link, parse_feed
+from gazette.parser import (
+    MAX_RESUME,
+    FeedError,
+    _rubrique,
+    clean_text,
+    normalize_link,
+    parse_feed,
+)
 
 CHAMPS = {"lien", "titre", "resume", "publie_le", "rubrique", "payload"}
 
@@ -69,6 +76,21 @@ def test_rubrique_du_flux_puis_de_l_url():
     items = parse("cas_limites.xml")
     assert items[2]["rubrique"] == "Société"  # <category>
     assert by_link(items)["https://exemple.test/monde/fuseau"]["rubrique"] == "monde"
+    assert by_link(items)["https://exemple.test/sans-date"]["rubrique"] is None  # slug seul
+
+
+@pytest.mark.parametrize(
+    ("lien", "attendu"),
+    [
+        ("https://www.latribune.fr/article/afrique/11500292245967/ludovic-peze", "afrique"),
+        ("https://www.leprogres.fr/sport/2026/10/21/stan-wawrinka", "sport"),
+        ("https://www.ladepeche.fr/2026/10/22/il-achete-une-maison", None),
+        ("https://www.la-croix.com/mairie-incendiee-a-limoges-20261022", None),
+        ("https://www.sudouest.fr/gironde/bordeaux/la-meteo-31182838.php", "gironde"),
+    ],
+)
+def test_rubrique_depuis_l_url(lien, attendu):
+    assert _rubrique({}, lien) == attendu
 
 
 def test_texte_integral_jamais_conserve():

@@ -22,7 +22,7 @@ manquantes, programme TV…), le tri se fera au nettoyage (TD 4).
 | `resume` | texte | Extrait sans HTML, tronqué à 500 caractères. Vide si le flux n'a pas de `<description>` ou de `<summary>`. Jamais le texte intégral |
 | `publie_le` | date ISO 8601 en UTC, ou `null` | `pubDate` / `published` (ou `dc:date`), sinon `updated`. `null` si absente ou illisible : la valeur reçue reste dans `payload` |
 | `recupere_le` | date ISO 8601 en UTC | Heure du passage qui a écrit l'item pour la première fois |
-| `rubrique` | texte ou `null` | Première `<category>` du flux, sinon premier segment du chemin de l'URL (`/societe/…` → `societe`) |
+| `rubrique` | texte ou `null` | Première `<category>` du flux, sinon premier segment parlant du chemin de l'URL (`/societe/…` → `societe`), en sautant les dates, le titre de l'article et `article` |
 | `payload` | objet | Les champs autorisés tels que reçus, avant nettoyage : `id` (le `guid` ou l'`id` Atom), `title`, `link`, `published`, `updated`, `summary` (1 000 caractères au plus), `tags` |
 
 Exemple :

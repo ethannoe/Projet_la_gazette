@@ -18,6 +18,7 @@ import feedparser
 MAX_RESUME = 500  # au-delà, ce n'est plus un extrait
 MAX_BRUT = 1000  # extrait brut gardé dans le payload
 PARAMS_DE_SUIVI = ("utm_", "xtor")  # ajoutés par les éditeurs, changent d'un passage à l'autre
+SEGMENTS_GENERIQUES = {"article", "articles", "amp"}  # ex. latribune.fr/article/afrique/…
 
 _TAG = re.compile(r"<[^>]+>")
 _SPACES = re.compile(r"\s+")
@@ -100,12 +101,17 @@ def _published_at(entry: dict) -> str | None:
 
 
 def _rubrique(entry: dict, lien: str) -> str | None:
-    """La catégorie déclarée par le flux, sinon le premier segment de l'URL."""
+    """La catégorie déclarée par le flux, sinon le premier segment parlant de l'URL.
+
+    Le dernier segment est le titre de l'article (slug), jamais une rubrique ; les
+    dates (/2026/10/22/) et les segments génériques (/article/) sont sautés.
+    """
     for tag in entry.get("tags", []):
         if term := clean_text(tag.get("term")):
             return term
-    for segment in urlsplit(lien).path.split("/"):
-        if segment and not segment.isdigit() and "." not in segment:
+    segments = [s for s in urlsplit(lien).path.split("/") if s][:-1]
+    for segment in segments:
+        if not segment.isdigit() and "." not in segment and segment not in SEGMENTS_GENERIQUES:
             return segment
     return None
 
