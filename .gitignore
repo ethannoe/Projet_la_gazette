@@ -1,0 +1,17 @@
+# Données collectées : jamais dans le dépôt
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets locaux
+.env
+
+# macOS
+.DS_Store
