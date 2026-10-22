@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "la-gazette"
-version = "0.1.0"
+version = "0.2.0"
 description = "Chaque matin, de quoi parle la presse française : thèmes du jour, journaux, liens."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "feedparser>=6.0,<7",
     "requests>=2.32,<3",
+    "psycopg[binary]>=3.2,<4",
 ]
 
 [project.optional-dependencies]
@@ -21,6 +22,9 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+gazette = ["migrations/*.sql"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
