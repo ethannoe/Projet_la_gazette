@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# Lint + tests dans un conteneur : rien à installer à part Docker.
+set -eu
+cd "$(dirname "$0")/.."
+
+docker build --target test --tag la-gazette:test .
+docker run --rm la-gazette:test

@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+# Lance l'environnement de dev : Postgres + une collecte (Le Monde par défaut).
+#   bin/dev                       collecte lemonde
+#   bin/dev --source liberation   collecte une autre source de sources.csv
+set -eu
+cd "$(dirname "$0")/.."
+
+mkdir -p data
+export LOCAL_USER="$(id -u):$(id -g)"
+
+docker compose run --rm --build collect "$@"
+
+echo
+echo "Items écrits dans ./data/raw/ ; Postgres tourne en fond (arrêt : docker compose down)."
