@@ -11,3 +11,4 @@ infra
 *.egg-info
 .env
 .DS_Store
+articles_bruts

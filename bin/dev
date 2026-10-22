@@ -1,14 +1,19 @@
 #!/usr/bin/env sh
-# Lance l'environnement de dev : Postgres + une collecte (Le Monde par défaut).
-#   bin/dev                       collecte lemonde
-#   bin/dev --source liberation   collecte une autre source de sources.csv
+# Démarre tout (Postgres, Prefect, collecte planifiée), fait un premier passage
+# tout de suite, puis affiche l'état des sources.
+#   bin/dev                       toutes les sources
+#   bin/dev --source liberation   un premier passage sur une seule source
 set -eu
 cd "$(dirname "$0")/.."
 
-mkdir -p data
+mkdir -p articles_bruts
 export LOCAL_USER="$(id -u):$(id -g)"
 
-docker compose run --rm --build collect "$@"
+docker compose up --build --detach db prefect collecteur
+docker compose run --rm collecteur collecter "$@" || true  # une source en échec n'est pas une erreur ici
+docker compose run --rm collecteur etat
 
 echo
-echo "Items écrits dans ./data/raw/ ; Postgres tourne en fond (arrêt : docker compose down)."
+echo "Items bruts : ./articles_bruts/<source>/ ; collecte toutes les ${GAZETTE_INTERVALLE_MIN:-30} min."
+echo "Interface Prefect : http://localhost:4200 ; journaux : docker compose logs -f collecteur"
+echo "Tout arrêter : docker compose down"

@@ -1,6 +1,8 @@
-# Environnement de dev : `bin/dev` (ou `docker compose up --build`).
+# Environnement de dev et collecte planifiée : `bin/dev` (détails dans le README).
 # Les identifiants par défaut ne servent qu'en local ; à surcharger dans un .env.
 name: la-gazette
+
+x-database-url: &database-url postgresql://${POSTGRES_USER:-gazette}:${POSTGRES_PASSWORD:-gazette}@db:5432/${POSTGRES_DB:-gazette}
 
 services:
   db:
@@ -16,21 +18,63 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
 
-  collect:
+  # Serveur Prefect : planification, historique des passages, interface sur :4200
+  prefect:
+    image: prefecthq/prefect:3.8.8-python3.12  # même version que dans pyproject.toml
+    command: ["prefect", "server", "start", "--host", "0.0.0.0"]
+    environment:
+      PREFECT_SERVER_ANALYTICS_ENABLED: "false"
+      PREFECT_UI_API_URL: http://localhost:4200/api
+    ports:
+      - "127.0.0.1:4200:4200"
+    volumes:
+      - prefect:/root/.prefect
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:4200/api/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  # La collecte planifiée : un passage toutes les GAZETTE_INTERVALLE_MIN minutes
+  collecteur:
     build:
       context: .
       target: runtime
     image: la-gazette:dev
-    # bin/dev passe l'utilisateur courant pour que ./data reste à nous (Linux)
+    command: ["planifier"]
+    # bin/dev passe l'utilisateur courant pour que articles_bruts/ reste à nous (Linux)
     user: "${LOCAL_USER:-10001:10001}"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-gazette}:${POSTGRES_PASSWORD:-gazette}@db:5432/${POSTGRES_DB:-gazette}
+      DATABASE_URL: *database-url
+      GAZETTE_INTERVALLE_MIN: ${GAZETTE_INTERVALLE_MIN:-30}
+      GAZETTE_DELAI_MIN: ${GAZETTE_DELAI_MIN:-10}
+      PREFECT_API_URL: http://prefect:4200/api
+      PREFECT_LOGGING_EXTRA_LOGGERS: gazette
     volumes:
-      - ./data:/data
+      - ./articles_bruts:/data/articles_bruts
+    depends_on:
+      db:
+        condition: service_healthy
+      prefect:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Lint + tests avec une vraie base : `bin/test`
+  test:
+    profiles: [test]
+    build:
+      context: .
+      target: test
+    image: la-gazette:test
+    environment:
+      DATABASE_URL: *database-url
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   pgdata:
+  prefect:

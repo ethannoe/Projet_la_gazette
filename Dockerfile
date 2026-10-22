@@ -25,13 +25,15 @@ FROM python:${PYTHON_VERSION}-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH=/opt/venv/bin:$PATH \
-    GAZETTE_RAW_DIR=/data/raw
+    GAZETTE_ARTICLES_DIR=/data/articles_bruts \
+    GAZETTE_SOURCES_FILE=/app/sources.csv \
+    PREFECT_HOME=/tmp/prefect
 RUN groupadd --gid 10001 gazette \
  && useradd --uid 10001 --gid gazette --no-create-home --shell /usr/sbin/nologin gazette \
- && mkdir /data && chown gazette:gazette /data
+ && mkdir -p /data/articles_bruts && chown -R gazette:gazette /data
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY sources.csv ./
 USER gazette
-ENTRYPOINT ["python", "-m", "gazette.collect"]
-CMD ["--source", "lemonde"]
+ENTRYPOINT ["python", "-m", "gazette"]
+CMD ["planifier"]

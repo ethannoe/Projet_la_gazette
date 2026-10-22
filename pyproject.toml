@@ -12,6 +12,8 @@ dependencies = [
     "feedparser>=6.0,<7",
     "requests>=2.32,<3",
     "psycopg[binary]>=3.2,<4",
+    # même version que l'image du serveur Prefect dans docker-compose.yml
+    "prefect==3.8.8",
 ]
 
 [project.optional-dependencies]

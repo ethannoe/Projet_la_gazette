@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
-# Lint + tests dans un conteneur : rien à installer à part Docker.
+# Lint + tests dans un conteneur, avec une vraie base PostgreSQL : rien à installer à part Docker.
+# Les tests travaillent dans un schéma jetable, jamais dans les données de dev.
 set -eu
 cd "$(dirname "$0")/.."
 
-docker build --target test --tag la-gazette:test .
-docker run --rm la-gazette:test
+docker compose run --rm --build test
