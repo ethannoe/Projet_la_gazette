@@ -8,7 +8,7 @@
 
 <item>
   <title>Fuseau horaire américain</title>
-  <link>https://exemple.test/fuseau</link>
+  <link>https://exemple.test/monde/fuseau</link>
   <pubDate>Wed, 21 Oct 2026 22:30:00 -0500</pubDate>
   <description>Doit être converti en UTC.</description>
 </item>
@@ -16,19 +16,21 @@
 <item>
   <title>Article sans date</title>
   <link>https://exemple.test/sans-date</link>
-  <description>Doit être rejeté.</description>
+  <description>Gardé en brut, avec une date vide : le tri se fera au nettoyage.</description>
 </item>
 
 <item>
   <title>Article sans lien</title>
   <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
-  <description>Doit être rejeté.</description>
+  <description>Rejeté : sans lien, pas de clé (source, lien).</description>
 </item>
 
 <item>
   <title><![CDATA[Extrait en <b>HTML</b> &amp; entités]]></title>
   <link>https://exemple.test/html</link>
   <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <category>Société</category>
+  <author>jeanne.exemple@exemple.test (Jeanne Exemple)</author>
   <description><![CDATA[<p>Un extrait <a href="https://exemple.test">avec un lien</a>&nbsp;et des    espaces.</p>]]></description>
 </item>
 
@@ -48,17 +50,24 @@
 </item>
 
 <item>
-  <title>Doublon</title>
-  <link>https://exemple.test/html</link>
+  <title>Doublon avec paramètres de suivi</title>
+  <link>https://EXEMPLE.test/html?utm_source=rss&amp;utm_medium=flux#haut</link>
   <pubDate>Thu, 22 Oct 2026 09:00:00 +0200</pubDate>
-  <description>Même URL qu'un item précédent : doit être ignoré.</description>
+  <description>Même article que « Extrait en HTML » une fois le lien normalisé.</description>
+</item>
+
+<item>
+  <title></title>
+  <link>https://exemple.test/titre-vide</link>
+  <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
+  <description>Gardé en brut : un titre vide est un problème de qualité (TD 4).</description>
 </item>
 
 <item>
   <title>Extrait trop long</title>
   <link>https://exemple.test/long</link>
   <pubDate>Thu, 22 Oct 2026 08:00:00 +0200</pubDate>
-  <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</description>
+  <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</description>
 </item>
 
 </channel>

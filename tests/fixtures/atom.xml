@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Flux Atom fictif : mêmes informations, autres noms (updated, summary, id, link href). -->
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Flux Atom de test</title>
+  <id>urn:exemple:flux</id>
+  <updated>2026-10-22T08:00:00+02:00</updated>
+
+  <entry>
+    <title type="html">Un titre &lt;em&gt;Atom&lt;/em&gt;</title>
+    <id>urn:exemple:article:1</id>
+    <link rel="alternate" href="https://exemple.test/culture/atom-1"/>
+    <updated>2026-10-22T08:00:00+02:00</updated>
+    <summary>Le résumé Atom.</summary>
+    <content type="html">&lt;p&gt;TEXTE INTÉGRAL Atom.&lt;/p&gt;</content>
+    <category term="Culture"/>
+    <author><name>Jeanne Exemple</name></author>
+  </entry>
+
+  <entry>
+    <title>Sans résumé, avec published et updated</title>
+    <id>urn:exemple:article:2</id>
+    <link href="https://exemple.test/atom-2"/>
+    <published>2026-10-21T23:00:00Z</published>
+    <updated>2026-10-22T06:00:00Z</updated>
+    <content type="text">TEXTE INTÉGRAL Atom.</content>
+  </entry>
+</feed>

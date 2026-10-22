@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Flux fictif encodé en ISO-8859-1, avec des formats de date hétérogènes. -->
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+<title>Flux régional de test</title>
+<link>https://exemple.test/</link>
+<description>Encodage et dates</description>
+<item>
+  <title>Été brûlant à Besançon</title>
+  <link>https://exemple.test/region/ete</link>
+  <pubDate>22 Oct 2026 08:00:00 +0200</pubDate>
+  <description>Pas de jour de la semaine dans la date.</description>
+</item>
+<item>
+  <title>Fête de la châtaigne</title>
+  <link>https://exemple.test/region/chataigne</link>
+  <dc:date>2026-10-22T08:00:00+02:00</dc:date>
+  <description>Date au format ISO 8601, dans dc:date.</description>
+</item>
+<item>
+  <title>Date illisible</title>
+  <link>https://exemple.test/region/illisible</link>
+  <pubDate>jeudi 22 octobre 2026, 8 h</pubDate>
+  <description>Gardé, date vide ; la valeur reçue reste dans le payload.</description>
+</item>
+</channel>
+</rss>
