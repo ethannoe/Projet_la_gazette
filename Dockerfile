@@ -24,7 +24,8 @@ CMD ["sh", "-c", "ruff check src tests && pytest -p no:cacheprovider"]
 FROM python:${PYTHON_VERSION}-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH=/opt/venv/bin:$PATH
+    PATH=/opt/venv/bin:$PATH \
+    GAZETTE_RAW_DIR=/data/raw
 RUN groupadd --gid 10001 gazette \
  && useradd --uid 10001 --gid gazette --no-create-home --shell /usr/sbin/nologin gazette \
  && mkdir /data && chown gazette:gazette /data
@@ -33,4 +34,4 @@ COPY --from=builder /opt/venv /opt/venv
 COPY sources.csv ./
 USER gazette
 ENTRYPOINT ["python", "-m", "gazette.collect"]
-CMD ["--source", "lemonde", "--out", "/data/raw"]
+CMD ["--source", "lemonde"]

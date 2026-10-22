@@ -6,6 +6,7 @@ Usage : python -m gazette.collect --source lemonde --out data/raw
 import argparse
 import json
 import logging
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -50,7 +51,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Collecte une source de sources.csv en JSON.")
     parser.add_argument("--source", default="lemonde", help="id de la source dans sources.csv")
     parser.add_argument("--sources-file", default="sources.csv")
-    parser.add_argument("--out", default="data/raw", help="dossier des fichiers bruts")
+    parser.add_argument(
+        "--out",
+        default=os.environ.get("GAZETTE_RAW_DIR", "data/raw"),
+        help="dossier des fichiers bruts (défaut : $GAZETTE_RAW_DIR ou data/raw)",
+    )
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
