@@ -7,8 +7,10 @@ les journaux qui les traitent et les liens pour lire la suite. On ne résume pas
 regroupe par thèmes. Le besoin, le périmètre et la stack sont décrits dans
 [docs/cadrage.md](docs/cadrage.md).
 
-Pour l'instant (TD 2) : une source, Le Monde, est lue de bout en bout. Son flux RSS est téléchargé,
-parsé, et les articles sont écrits en JSON.
+Où on en est (TD 3) : la collecte tourne seule. Toutes les 30 min, les flux RSS des sources de
+[sources.csv](sources.csv) sont lus, et chaque nouvel article est écrit une seule fois dans
+`articles_bruts/`. La table `sources` garde l'état de chaque source, et une source qui échoue trois
+fois de suite est mise en sommeil.
 
 ## Lancer le projet
 
@@ -20,29 +22,26 @@ git clone https://github.com/ethannoe/Projet_la_gazette.git && cd Projet_la_gaze
 bin/dev
 ```
 
-`bin/dev` construit l'image, démarre PostgreSQL, puis collecte le flux du Monde. Le résultat est
-dans `data/raw/AAAA-MM-JJ/lemonde-<horodatage>.json` :
+`bin/dev` démarre PostgreSQL, le serveur Prefect et la collecte planifiée, fait un premier passage
+tout de suite, puis affiche l'état des sources :
 
-```json
-{
-  "source": "Le Monde",
-  "feed_url": "https://www.lemonde.fr/rss/une.xml",
-  "fetched_at": "2026-10-22T09:12:50+00:00",
-  "count": 16,
-  "items": [
-    {
-      "source": "Le Monde",
-      "title": "…",
-      "summary": "…",
-      "url": "https://www.lemonde.fr/…",
-      "published_at": "2026-10-22T07:45:09+00:00"
-    }
-  ]
-}
+```
+source        état     dernière réussite     échecs  passages        sommeils  articles
+lemonde       actif    2026-10-22 09:46 UTC  0       1 (0 en échec)  0         16
+lesechos      actif    jamais                1       1 (1 en échec)  0         0
+…
+- lesechos : HTTP 403
 ```
 
-- Une autre source : `bin/dev --source liberation` (les `id` sont dans [sources.csv](sources.csv)).
+- Les articles bruts sont dans `articles_bruts/<source>/<id>.json` (champs décrits dans
+  [docs/donnees.md](docs/donnees.md)).
+- L'interface Prefect, avec l'historique des passages, est sur http://localhost:4200.
+- Les journaux, une ligne JSON par source et par passage :
+  `docker compose logs -f collecteur`.
 - Tout arrêter : `docker compose down` (ajouter `-v` pour effacer aussi la base).
+
+Les commandes du quotidien (état, réveil d'une source, fréquence) sont dans
+[docs/orchestration.md](docs/orchestration.md).
 
 ## Tester
 
@@ -50,31 +49,33 @@ dans `data/raw/AAAA-MM-JJ/lemonde-<horodatage>.json` :
 bin/test
 ```
 
-Lint (ruff) et tests (pytest) dans un conteneur : rien à installer à part Docker. Les tests ne
-touchent pas au réseau, ils utilisent des flux enregistrés dans `tests/fixtures/`.
+Lint (ruff) et tests (pytest) dans un conteneur, avec une vraie base PostgreSQL : rien à installer à
+part Docker. Les tests n'utilisent jamais Internet : flux enregistrés dans `tests/fixtures/`, et un
+serveur HTTP local qui joue l'éditeur (503, 404, ETag…). Parmi eux :
 
-Sans Docker, avec Python 3.11 ou plus :
-
-```bash
-python -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
-ruff check src tests && pytest
-```
+- `test_deux_passages_zero_doublon` : deux passages de suite n'écrivent aucun doublon ;
+- `test_source_en_panne_mise_en_sommeil` : une source qui répond 503 est réessayée avec une
+  attente croissante, puis mise en sommeil au troisième passage en échec.
 
 ## Arborescence
 
 ```
-src/gazette/        le code
-  sources.py          lecture de sources.csv
-  parser.py           flux RSS/Atom → items (titre, extrait, lien, date, source)
-  collect.py          télécharge une source et écrit le JSON (python -m gazette.collect)
-tests/              tests pytest
-  fixtures/           flux enregistrés pour les tests
-docs/               cadrage, veille, stratégie CI/CD
-infra/              infrastructure as code à venir (Prefect, déploiement, supervision)
-bin/                dev et test : les deux seules commandes à connaître
-Dockerfile          multi-étapes : builder → test → runtime (non root)
-docker-compose.yml  l'environnement de dev : collecte + PostgreSQL
-sources.csv         les 9 flux retenus
+src/gazette/          le code (python -m gazette <commande>)
+  cli.py                commandes : migrer, collecter, planifier, etat, reveiller
+  flows.py              orchestration Prefect : un passage toutes les 30 min
+  collecteur.py         un passage : chaque source active, compteurs, mise en sommeil
+  fetch.py              requête polie : User-Agent, ETag / Last-Modified, timeouts, backoff
+  parser.py             flux RSS / Atom → items bruts
+  stockage.py           articles_bruts/<source>/<id>.json, sans doublon
+  db.py                 PostgreSQL : migrations, table sources, table collectes
+  migrations/           migrations SQL versionnées
+tests/                tests pytest et flux enregistrés (fixtures/)
+docs/                 cadrage, veille, données, flux, orchestration, qualité, CI/CD
+infra/                infrastructure as code à venir
+bin/                  dev et test : les deux seules commandes à connaître
+Dockerfile            multi-étapes : builder → test → runtime (non root)
+docker-compose.yml    PostgreSQL, Prefect, collecte planifiée, tests
+sources.csv           les 9 flux retenus
 ```
 
 ## Intégration continue
@@ -83,10 +84,6 @@ Chaque push sur `main` lance [la CI](.github/workflows/ci.yml) : lint → tests 
 → publication sur `ghcr.io/ethannoe/projet_la_gazette:<AAAAMMJJHHMMSS>-<sha>`. Sur une pull request,
 les mêmes étapes tournent, mais l'image n'est pas publiée. La stratégie est détaillée dans
 [docs/ci-cd.md](docs/ci-cd.md).
-
-```bash
-docker run --rm -v "$PWD/data:/data" ghcr.io/ethannoe/projet_la_gazette:<tag>
-```
 
 ## Contribuer
 

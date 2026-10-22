@@ -48,6 +48,9 @@ du message.
 - **Nouvelle source** : on vérifie d'abord ses CGU, son `robots.txt` et son
   `/.well-known/tdmrep.json`. Ensuite, on l'ajoute à `sources.csv`, avec un flux enregistré dans
   `tests/fixtures/` (réduit à quelques articles) et un test.
+- **Schéma de la base** : tout changement passe par une nouvelle migration
+  (`src/gazette/migrations/NNN_sujet.sql`). On ne modifie jamais une migration déjà sur
+  `main`, et on met à jour [docs/donnees.md](docs/donnees.md) dans la même PR.
 - **Une CI rouge se répare en priorité.** On ne désactive pas un test pour la faire passer.
 
 ## Protection de `main` (à régler une fois, par l'admin du dépôt)
