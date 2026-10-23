@@ -26,6 +26,46 @@ sur l'infrastructure fournie).
 Le collecteur ne dépend pas de Prefect : `python -m gazette collecter` fait un passage
 complet sans lui. Changer d'orchestrateur ne toucherait que `src/gazette/flows.py`.
 
+## Un passage, cinq tâches (TD 4)
+
+Le flow `collecte` enchaîne, toutes les 30 min :
+
+1. **`collecte`** : les flux RSS → `articles_bruts/` (TD 3) ;
+2. **`nettoyage`** : normalisation et règles d'exclusion → `articles_propres` ou `rejets` ;
+3. **`controles-qualite`** : 8 faits vérifiés sur les vraies données → table `controles`,
+   artifact `controles-qualite`, et une alerte si un fait devient faux ;
+4. **`rapport-qualite`** : `rapports/qualite-AAAA-MM-JJ.md` et l'artifact `rapport-qualite` ;
+5. **`retention`** : purge de ce qui a dépassé sa durée de conservation.
+
+Le détail est dans [qualite.md](qualite.md), et le contrat de données dans [donnees.md](donnees.md).
+
+## L'alerte
+
+Elle part sur le webhook Discord ou Slack de l'équipe quand un contrôle **devient** faux,
+puis quand il redevient vrai. Pour la brancher :
+
+1. Créer le webhook. Sur Discord : *Paramètres du salon → Intégrations → Webhooks →
+   Nouveau webhook → Copier l'URL*. Sur Slack : une app avec *Incoming Webhooks*.
+2. Le mettre dans un fichier `.env` à la racine du dépôt (ignoré par git, à ne jamais
+   commiter) : `GAZETTE_ALERTE_WEBHOOK=https://discord.com/api/webhooks/…`
+3. `bin/dev`, pour que le collecteur reprenne la variable.
+
+Sans webhook, l'alerte reste une ligne `ERROR` dans les journaux et dans Prefect.
+
+## L'incident du 22/10/2026
+
+**Ce qui s'est passé** : vers 14 h 30 UTC, le réseau du Mac qui faisait tourner la collecte
+a coupé (connexions refusées et timeouts vers tous les éditeurs). En 3 passages, 8 sources
+sur 9 se sont endormies, et la collecte est restée presque arrêtée pendant 22 h sans que
+personne ne le voie.
+
+**Ce qu'on a changé** :
+- Une source injoignable (aucune réponse HTTP) n'est plus comptée pour la mise en sommeil.
+  Seules les erreurs renvoyées par la source elle-même comptent : 404, 403, 5xx après
+  backoff, flux cassé.
+- Les contrôles `C04_fraicheur_collecte` et `C05_aucune_source_en_sommeil` alertent
+  désormais l'équipe.
+
 ## Comment c'est décrit
 
 Tout est dans [docker-compose.yml](../docker-compose.yml) :
@@ -45,6 +85,8 @@ redémarrage de Docker, tant qu'on ne les a pas arrêtés avec `docker compose d
 bin/dev                                                # tout démarrer + un premier passage
 docker compose logs -f collecteur                      # suivre les journaux (JSON)
 docker compose run --rm collecteur etat                # état des sources, articles par source
+docker compose run --rm collecteur rapport             # rapport de qualité du jour
+docker compose run --rm collecteur tracer <id|lien>    # d'où vient un article, et son sort
 docker compose run --rm collecteur reveiller lemonde   # sortir une source du sommeil
 docker compose down                                    # tout arrêter (les données restent)
 ```

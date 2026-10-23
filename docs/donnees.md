@@ -1,10 +1,55 @@
-# Dictionnaire de données
+# Données : contrat et dictionnaire
 
-Ce que la gazette stocke, champ par champ. À tenir à jour à chaque migration ou
-nouveau champ.
+Ce que la gazette stocke, champ par champ, et les engagements qui vont avec. À tenir à
+jour à chaque migration ou nouveau champ.
 
-**Ce qu'on ne stocke jamais** : le texte intégral (`content:encoded`, `<content>` Atom),
-les images et médias, les auteurs, les commentaires, ni aucune donnée personnelle.
+## Le contrat de données
+
+**Ce qu'on stocke**, c'est-à-dire seulement ce qu'on a le droit de republier : titre,
+extrait court (300 caractères au plus dans `articles_propres`), lien, date, source, rubrique.
+
+**Ce qu'on ne stocke jamais** :
+- le texte intégral (`content:encoded`, `<content>` Atom) ;
+- les images et médias ;
+- les auteurs ;
+- les commentaires ;
+- aucune donnée personnelle.
+
+Les noms qui apparaissent dans les titres sont ceux de l'actualité publiée par les journaux.
+
+**Le schéma** : les tables et fichiers décrits plus bas, créés par des migrations
+versionnées. Un changement de schéma passe par une nouvelle migration et une mise à jour de
+ce document dans la même pull request.
+
+**La fraîcheur** :
+- chaque source est interrogée toutes les 30 min ;
+- un article publié est dans `articles_propres` moins d'une heure plus tard ;
+- le contrôle `C04_fraicheur_collecte` alerte si une source n'a pas réussi de collecte depuis
+  2 h, et `C08` alerte s'il n'y a aucun article propre des dernières 24 h.
+
+**La qualité** : les règles d'exclusion et les contrôles sont décrits dans
+[qualite.md](qualite.md). Chaque rejet garde sa règle, et un rapport est produit à chaque
+passage.
+
+**La rétention** : `python -m gazette purger`, appliquée aussi à chaque passage.
+
+| Donnée | Durée | Après |
+|---|---|---|
+| Items bruts (`articles_bruts/`) | 90 jours | Supprimés : de quoi rejouer le nettoyage sur un trimestre |
+| `rejets` | 90 jours | Supprimés, comme le brut dont ils viennent |
+| `articles_propres` | 1 an (selon `publie_le`) | Supprimés |
+| `collectes`, `controles`, `rapports/` | 1 an | Supprimés |
+| Éditions HTML (à partir du TD 7) | 1 mois en ligne | Déplacées vers un stockage froid (archive compressée hors du serveur web), gardées 1 an |
+
+**La traçabilité** : à partir d'un article propre ou rejeté, on retrouve son item brut
+(`articles_bruts/<source_id>/<item_id>.json`, qui contient le `payload` tel que reçu) et sa
+source (table `sources`) :
+
+```bash
+docker compose run --rm collecteur tracer <item_id ou lien>
+```
+
+Après 90 jours, l'item brut est purgé : la traçabilité s'arrête alors à la source et au lien.
 
 ## Items bruts : `articles_bruts/<source>/<id>.json`
 
@@ -103,6 +148,46 @@ Les compteurs de la collecte, base des tableaux de bord du TD 8.
 | `ignores` | integer | Items déjà connus (`recus - ecrits`) |
 | `erreur` | text | Message d'erreur si `echec` |
 | `mise_en_sommeil` | boolean | `true` si ce passage a endormi la source |
+
+### Table `articles_propres` : la matière de la gazette
+
+Les articles qui ont passé toutes les règles (migration `003_articles_propres.sql`).
+
+| Colonne | Type | Description |
+|---|---|---|
+| `item_id` | text, clé primaire | Le même `id` que l'item brut : `articles_bruts/<source_id>/<item_id>.json` |
+| `source_id` | text → `sources.id` | |
+| `lien` | text | Lien normalisé ; `(source_id, lien)` est unique |
+| `titre` | text | Normalisé (HTML, entités, encodage, espaces) |
+| `extrait` | text | Normalisé, 300 caractères au plus |
+| `publie_le` | timestamptz | En UTC, jamais vide, jamais dans le futur |
+| `recupere_le` | timestamptz | Premier passage de collecte qui l'a vu |
+| `rubrique` | text | Peut être vide |
+| `titre_cle` | text | Titre sans casse, accents ni ponctuation : sert au dédoublonnage |
+| `passage` | timestamptz | Le passage de nettoyage qui l'a gardé |
+
+### Table `rejets` : les items écartés, avec leur raison
+
+| Colonne | Type | Description |
+|---|---|---|
+| `item_id` | text, clé primaire | Comme dans `articles_propres` |
+| `source_id` | text → `sources.id` | |
+| `regle` | text | La règle qui l'a écarté, ex. `R02_horoscope` (voir [qualite.md](qualite.md)) |
+| `detail` | text | Ce qui l'a déclenchée : le motif trouvé, ou l'article gardé à sa place pour un doublon |
+| `titre`, `lien` | text | Pour lire le rapport sans rouvrir le brut |
+| `passage` | timestamptz | Le passage de nettoyage qui l'a écarté |
+
+### Table `controles` : les métriques de qualité
+
+Une ligne par contrôle et par passage (migration `004_controles.sql`).
+
+| Colonne | Type | Description |
+|---|---|---|
+| `passage` | timestamptz | |
+| `controle` | text | Ex. `C01_aucune_date_future` |
+| `ok` | boolean | Le fait est-il vrai ? |
+| `valeur`, `seuil` | double precision | La mesure et sa limite |
+| `detail` | text | Ex. les sources concernées |
 
 ### Table `schema_migrations`
 

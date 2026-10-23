@@ -7,10 +7,16 @@ les journaux qui les traitent et les liens pour lire la suite. On ne résume pas
 regroupe par thèmes. Le besoin, le périmètre et la stack sont décrits dans
 [docs/cadrage.md](docs/cadrage.md).
 
-Où on en est (TD 3) : la collecte tourne seule. Toutes les 30 min, les flux RSS des sources de
-[sources.csv](sources.csv) sont lus, et chaque nouvel article est écrit une seule fois dans
-`articles_bruts/`. La table `sources` garde l'état de chaque source, et une source qui échoue trois
-fois de suite est mise en sommeil.
+Où on en est (TD 4), toutes les 30 min :
+- **collecte** : les flux RSS de [sources.csv](sources.csv) sont lus, et chaque nouvel article est
+  écrit une seule fois dans `articles_bruts/` ;
+- **nettoyage** : chaque article est normalisé et passe des règles d'exclusion (publi,
+  horoscope, programme TV, doublons…), puis va dans la table `articles_propres` ou dans `rejets`,
+  avec la règle qui l'a écarté ;
+- **contrôles** : des contrôles de qualité vérifient les vraies données, et alertent l'équipe si un
+  fait est faux ;
+- **rapport** : un rapport de qualité dit, chaque jour, ce qui a été rejeté, par règle et par
+  source (`rapports/qualite-AAAA-MM-JJ.md`).
 
 ## Lancer le projet
 
@@ -37,8 +43,12 @@ lesechos      retirée  jamais                3       3 (3 en échec)  1        
 Une source `SOMMEIL` a échoué 3 fois de suite et n'est plus interrogée ; une source
 `retirée` n'est plus dans `sources.csv` mais garde son historique.
 
-- Les articles bruts sont dans `articles_bruts/<source>/<id>.json` (champs décrits dans
-  [docs/donnees.md](docs/donnees.md)).
+- Les articles bruts sont dans `articles_bruts/<source>/<id>.json`, les articles propres dans la
+  table `articles_propres` (contrat et champs : [docs/donnees.md](docs/donnees.md)).
+- Le rapport de qualité du jour : `rapports/qualite-AAAA-MM-JJ.md` (comment le lire :
+  [docs/qualite.md](docs/qualite.md)).
+- Pour brancher l'alerte sur le Discord ou le Slack de l'équipe, mettre
+  `GAZETTE_ALERTE_WEBHOOK=…` dans un fichier `.env` (voir [docs/orchestration.md](docs/orchestration.md)).
 - L'interface Prefect, avec l'historique des passages, est sur http://localhost:4200.
 - Les journaux, une ligne JSON par source et par passage :
   `docker compose logs -f collecteur`.
@@ -59,27 +69,37 @@ serveur HTTP local qui joue l'éditeur (503, 404, ETag…). Parmi eux :
 
 - `test_deux_passages_zero_doublon` : deux passages de suite n'écrivent aucun doublon ;
 - `test_source_en_panne_mise_en_sommeil` : une source qui répond 503 est réessayée avec une
-  attente croissante, puis mise en sommeil au troisième passage en échec.
+  attente croissante, puis mise en sommeil au troisième passage en échec ;
+- `test_nos_dix_pollueurs_sont_ecartes` et `test_de_vrais_articles_sont_gardes` : les règles
+  d'exclusion, sur de vrais items ;
+- `test_un_fait_faux_declenche_une_alerte_une_seule_fois` : les contrôles de qualité et leur alerte.
 
 ## Arborescence
 
 ```
 src/gazette/          le code (python -m gazette <commande>)
-  cli.py                commandes : migrer, collecter, planifier, etat, reveiller
-  flows.py              orchestration Prefect : un passage toutes les 30 min
+  cli.py                commandes : collecter, nettoyer, controler, rapport, tracer, etat…
+  flows.py              orchestration Prefect : collecte → nettoyage → contrôles → rapport
   collecteur.py         un passage : chaque source active, compteurs, mise en sommeil
   fetch.py              requête polie : User-Agent, ETag / Last-Modified, timeouts, backoff
   parser.py             flux RSS / Atom → items bruts
   stockage.py           articles_bruts/<source>/<id>.json, sans doublon
-  db.py                 PostgreSQL : migrations, table sources, table collectes
+  normalisation.py      une fonction pure par transformation (HTML, encodage, dates…)
+  regles.py             règles d'exclusion R01…R15 et dédoublonnage
+  nettoyage.py          brut → articles_propres / rejets
+  controles.py          contrôles de qualité sur les vraies données, alerte (alertes.py)
+  rapport.py            rapport de qualité du jour
+  retention.py          purge selon les durées de conservation
+  db.py                 PostgreSQL : migrations, tables sources, collectes
   migrations/           migrations SQL versionnées
 tests/                tests pytest et flux enregistrés (fixtures/)
 docs/                 cadrage, veille, données, flux, orchestration, qualité, CI/CD
 infra/                infrastructure as code à venir
 bin/                  dev et test : les deux seules commandes à connaître
 Dockerfile            multi-étapes : builder → test → runtime (non root)
-docker-compose.yml    PostgreSQL, Prefect, collecte planifiée, tests
+docker-compose.yml    PostgreSQL, Prefect, pipeline planifié, tests
 sources.csv           les 9 flux retenus
+regles.toml           motifs et seuils des règles d'exclusion
 ```
 
 ## Intégration continue
