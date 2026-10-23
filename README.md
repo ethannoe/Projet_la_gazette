@@ -7,7 +7,7 @@ les journaux qui les traitent et les liens pour lire la suite. On ne résume pas
 regroupe par thèmes. Le besoin, le périmètre et la stack sont décrits dans
 [docs/cadrage.md](docs/cadrage.md).
 
-Où on en est (TD 4), toutes les 30 min :
+Où on en est (TD 5), toutes les 30 min :
 - **collecte** : les flux RSS de [sources.csv](sources.csv) sont lus, et chaque nouvel article est
   écrit une seule fois dans `articles_bruts/` ;
 - **nettoyage** : chaque article est normalisé et passe des règles d'exclusion (publi,
@@ -16,7 +16,10 @@ Où on en est (TD 4), toutes les 30 min :
 - **contrôles** : des contrôles de qualité vérifient les vraies données, et alertent l'équipe si un
   fait est faux ;
 - **rapport** : un rapport de qualité dit, chaque jour, ce qui a été rejeté, par règle et par
-  source (`rapports/qualite-AAAA-MM-JJ.md`).
+  source (`rapports/qualite-AAAA-MM-JJ.md`) ;
+- **thèmes** (une fois par jour, après 6 h 30) : les articles propres des dernières 24 h sont
+  vectorisés, regroupés (HDBSCAN) et nommés par leurs mots-clés. Chaque run est tracé
+  (données, paramètres, métriques, artefacts) : voir [docs/mlops.md](docs/mlops.md).
 
 ## Lancer le projet
 
@@ -47,6 +50,8 @@ Une source `SOMMEIL` a échoué 3 fois de suite et n'est plus interrogée ; une 
   table `articles_propres` (contrat et champs : [docs/donnees.md](docs/donnees.md)).
 - Le rapport de qualité du jour : `rapports/qualite-AAAA-MM-JJ.md` (comment le lire :
   [docs/qualite.md](docs/qualite.md)).
+- Les thèmes du jour : `docker compose run --rm collecteur themes-du-jour` ; les runs :
+  `docker compose run --rm collecteur runs`.
 - Pour brancher l'alerte sur le Discord ou le Slack de l'équipe, mettre
   `GAZETTE_ALERTE_WEBHOOK=…` dans un fichier `.env` (voir [docs/orchestration.md](docs/orchestration.md)).
 - L'interface Prefect, avec l'historique des passages, est sur http://localhost:4200.
@@ -72,7 +77,9 @@ serveur HTTP local qui joue l'éditeur (503, 404, ETag…). Parmi eux :
   attente croissante, puis mise en sommeil au troisième passage en échec ;
 - `test_nos_dix_pollueurs_sont_ecartes` et `test_de_vrais_articles_sont_gardes` : les règles
   d'exclusion, sur de vrais items ;
-- `test_un_fait_faux_declenche_une_alerte_une_seule_fois` : les contrôles de qualité et leur alerte.
+- `test_un_fait_faux_declenche_une_alerte_une_seule_fois` : les contrôles de qualité et leur alerte ;
+- `test_vrai_modele_sur_dix_articles`, `test_meme_entree_memes_themes` : les embeddings et la
+  reproductibilité des runs de regroupement.
 
 ## Arborescence
 
@@ -90,6 +97,8 @@ src/gazette/          le code (python -m gazette <commande>)
   controles.py          contrôles de qualité sur les vraies données, alerte (alertes.py)
   rapport.py            rapport de qualité du jour
   retention.py          purge selon les durées de conservation
+  embeddings.py         titre + extrait → vecteur (fastembed), cache en base
+  themes.py             regroupement HDBSCAN, nommage, runs tracés
   db.py                 PostgreSQL : migrations, tables sources, collectes
   migrations/           migrations SQL versionnées
 tests/                tests pytest et flux enregistrés (fixtures/)
@@ -100,6 +109,7 @@ Dockerfile            multi-étapes : builder → test → runtime (non root)
 docker-compose.yml    PostgreSQL, Prefect, pipeline planifié, tests
 sources.csv           les 9 flux retenus
 regles.toml           motifs et seuils des règles d'exclusion
+config/               paramètres du regroupement (clustering.yaml) et mots vides
 ```
 
 ## Intégration continue

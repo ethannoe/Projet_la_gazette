@@ -39,6 +39,8 @@ passage.
 | `rejets` | 90 jours | Supprimés, comme le brut dont ils viennent |
 | `articles_propres` | 1 an (selon `publie_le`) | Supprimés |
 | `collectes`, `controles`, `rapports/` | 1 an | Supprimés |
+| `runs` (avec `themes`, `articles_themes`) et `runs/<run_id>/` | 1 an | Supprimés |
+| `embeddings` | Comme l'article propre | Supprimés avec lui |
 | Éditions HTML (à partir du TD 7) | 1 mois en ligne | Déplacées vers un stockage froid (archive compressée hors du serveur web), gardées 1 an |
 
 **La traçabilité** : à partir d'un article propre ou rejeté, on retrouve son item brut
@@ -188,6 +190,18 @@ Une ligne par contrôle et par passage (migration `004_controles.sql`).
 | `ok` | boolean | Le fait est-il vrai ? |
 | `valeur`, `seuil` | double precision | La mesure et sa limite |
 | `detail` | text | Ex. les sources concernées |
+
+### Tables des thèmes (TD 5)
+
+Migration `005_themes.sql`. Le détail et la façon de les lire sont dans [mlops.md](mlops.md).
+
+| Table | Une ligne par | Colonnes principales |
+|---|---|---|
+| `embeddings` | article × modèle | `item_id`, `modele` (nom@révision), `texte_hash`, `vecteur` (384 nombres) |
+| `runs` | run de regroupement | `run_id`, `debut`, `statut`, `declencheur`, `fenetre_debut`, `fenetre_fin`, `nb_articles`, `hash_entree`, `modele`, `modele_version`, `algorithme`, `parametres`, `hash_parametres`, `code_version`, `metriques`, `artefacts`, `erreur` |
+| `themes` | thème d'un run | `theme_id`, `run_id`, `numero` (0 = le plus gros), `nom`, `mots_cles`, `taille` |
+| `articles_themes` | article rattaché à un thème | `run_id`, `item_id`, `theme_id`, `probabilite` (force du rattachement, de 0 à 1) ; les articles en bruit n'y sont pas |
+| `themes_du_jour` (vue) | thème du dernier run réussi | les colonnes de `themes`, plus `run_debut` |
 
 ### Table `schema_migrations`
 

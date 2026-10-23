@@ -26,7 +26,7 @@ sur l'infrastructure fournie).
 Le collecteur ne dépend pas de Prefect : `python -m gazette collecter` fait un passage
 complet sans lui. Changer d'orchestrateur ne toucherait que `src/gazette/flows.py`.
 
-## Un passage, cinq tâches (TD 4)
+## Un passage, six tâches
 
 Le flow `collecte` enchaîne, toutes les 30 min :
 
@@ -35,7 +35,10 @@ Le flow `collecte` enchaîne, toutes les 30 min :
 3. **`controles-qualite`** : 8 faits vérifiés sur les vraies données → table `controles`,
    artifact `controles-qualite`, et une alerte si un fait devient faux ;
 4. **`rapport-qualite`** : `rapports/qualite-AAAA-MM-JJ.md` et l'artifact `rapport-qualite` ;
-5. **`retention`** : purge de ce qui a dépassé sa durée de conservation.
+5. **`themes`** (TD 5) : une fois par jour, au premier passage après 6 h 30, un run de
+   regroupement tracé → tables `runs`, `themes`, `articles_themes`, et l'artifact
+   `themes-du-jour` ([mlops.md](mlops.md)) ;
+6. **`retention`** : purge de ce qui a dépassé sa durée de conservation.
 
 Le détail est dans [qualite.md](qualite.md), et le contrat de données dans [donnees.md](donnees.md).
 
@@ -87,6 +90,8 @@ docker compose logs -f collecteur                      # suivre les journaux (JS
 docker compose run --rm collecteur etat                # état des sources, articles par source
 docker compose run --rm collecteur rapport             # rapport de qualité du jour
 docker compose run --rm collecteur tracer <id|lien>    # d'où vient un article, et son sort
+docker compose run --rm collecteur themes-du-jour      # les thèmes du dernier run
+docker compose run --rm collecteur runs                # les derniers runs et leurs métriques
 docker compose run --rm collecteur reveiller lemonde   # sortir une source du sommeil
 docker compose down                                    # tout arrêter (les données restent)
 ```
