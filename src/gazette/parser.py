@@ -7,21 +7,18 @@ lien, date et rubrique (cf. docs/donnees.md) : ni texte intégral
 (`content:encoded`), ni image, ni auteur.
 """
 
-import html
-import re
 from calendar import timegm
 from datetime import UTC, datetime
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import feedparser
 
+from gazette.normalisation import borner_extrait, normaliser_texte
+
 MAX_RESUME = 500  # au-delà, ce n'est plus un extrait
 MAX_BRUT = 1000  # extrait brut gardé dans le payload
 PARAMS_DE_SUIVI = ("utm_", "xtor")  # ajoutés par les éditeurs, changent d'un passage à l'autre
 SEGMENTS_GENERIQUES = {"article", "articles", "amp"}  # ex. latribune.fr/article/afrique/…
-
-_TAG = re.compile(r"<[^>]+>")
-_SPACES = re.compile(r"\s+")
 
 
 class FeedError(ValueError):
@@ -29,15 +26,12 @@ class FeedError(ValueError):
 
 
 def clean_text(value: str | None) -> str:
-    """Retire les balises HTML, décode les entités et normalise les espaces."""
-    text = html.unescape(_TAG.sub(" ", value or ""))
-    return _SPACES.sub(" ", text).strip()
+    """HTML, entités, encodage et espaces : voir gazette.normalisation."""
+    return normaliser_texte(value)
 
 
 def truncate(text: str, limit: int = MAX_RESUME) -> str:
-    if len(text) <= limit:
-        return text
-    return text[:limit].rsplit(" ", 1)[0] + "…"
+    return borner_extrait(text, limit)
 
 
 def normalize_link(link: str | None) -> str:
