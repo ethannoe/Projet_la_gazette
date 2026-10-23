@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "la-gazette"
-version = "0.2.0"
+version = "0.3.0"
 description = "Chaque matin, de quoi parle la presse française : thèmes du jour, journaux, liens."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,6 +14,11 @@ dependencies = [
     "psycopg[binary]>=3.2,<4",
     # même version que l'image du serveur Prefect dans docker-compose.yml
     "prefect==3.8.8",
+    # thèmes (TD 5) : versions figées, les runs doivent être reproductibles
+    "fastembed==0.9.0",
+    "scikit-learn==1.9.1",
+    "pyyaml>=6.0,<7",
+    "tzdata",
 ]
 
 [project.optional-dependencies]
