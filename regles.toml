@@ -1,0 +1,123 @@
+# Règles d'exclusion : ce qui n'a rien à faire dans la gazette.
+#
+# Chaque règle a un identifiant (R01_publi…) que l'on retrouve dans la table `rejets`
+# et dans le rapport de qualité. Documentation et exemples : docs/qualite.md.
+#
+# Règles à motifs (R01 à R09) : expressions régulières Python, insensibles à la casse,
+# cherchées dans le titre, le lien ou la rubrique de l'article normalisé. Elles sont
+# écrites en chaînes littérales ('…', ou '''…''' si le motif contient une apostrophe) :
+# entre guillemets doubles, TOML lirait « \b » comme un caractère spécial.
+# Les autres règles (R10 à R15) sont dans gazette/regles.py ; leurs seuils sont ici.
+#
+# Ordre d'application : R10, R13, R12, R11, puis R01 à R09 dans l'ordre du fichier,
+# puis les doublons (R14, R15). La première règle qui correspond l'emporte.
+
+[seuils]
+titre_min_caracteres = 12        # R10 : en dessous, ce n'est pas un titre d'article
+date_future_tolerance_min = 60   # R11 : marge pour les horloges des éditeurs
+doublon_jaccard = 0.8            # R15 : calibré sur nos données (docs/qualite.md)
+doublon_mots_min = 4             # R15 : un titre trop court ressemble à trop d'autres
+doublon_fenetre_heures = 72      # R14, R15 : on compare aux articles de ces dernières heures
+extrait_max = 300                # extrait court, republiable
+rejet_max_par_source = 0.8       # contrôle C03 : au-delà, une règle est trop gourmande
+rejet_min_items = 10             # contrôle C03 : en dessous, le taux n'est pas significatif
+fraicheur_max_heures = 2         # contrôle C04 : dernière collecte réussie de chaque source
+
+[R01_publi]
+description = "Publi-reportages, contenus partenaires, bons plans"
+titre = [
+    'publi[- ]?(reportage|r[ée]dactionnel|communiqu[ée])',
+    'contenu (sponsoris[ée]|partenaire)',
+    'en partenariat avec',
+    '\bsponsoris[ée]',
+    '\bbons? plans?\b',
+    'code promo',
+    'black friday',
+    'ventes? priv[ée]es?',
+]
+lien = ['/(bons-plans|partenaires?|publi-?reportage|shopping|guide-d-achat)/']
+rubrique = ['^(partenaires?|publi.*|shopping|bons plans)$']
+
+[R02_horoscope]
+description = "Horoscope et astrologie"
+titre = ['horoscope', '\bastrolog', '\bsigne astrologique', '\bzodiaque', '\btarot\b', 'num[ée]rologie']
+lien = ['/horoscope', '/astro']
+rubrique = ['^(horoscope|astrologie|astro)$']
+
+[R03_programme_tv]
+description = "Programmes télé et grilles"
+titre = [
+    'programme t[ée]l[ée]',
+    'programme tv',
+    'ce soir (à|a) la t[ée]l[ée]',
+    'que regarder ce soir',
+    'sur quelle cha[iî]ne',
+]
+lien = ['//programme-?tv\.', '/programme-tv/']
+rubrique = ['^(programme tv|programmes? t[ée]l[ée])$']
+
+[R04_jeux]
+description = "Jeux, concours, quiz, résultats de loterie"
+titre = [
+    '\bjeux?[- ]concours\b',
+    '\bquiz\b',
+    'mots? (crois|fl[ée]ch)[ée]s',
+    '\bsudoku\b',
+    '\bespace jeux\b',
+    '\bjouez\b',
+    '\b(loto|euromillions?|keno)\b.*(r[ée]sultat|tirage)',
+    '(r[ée]sultat|tirage).*\b(loto|euromillions?|keno)\b',
+    '(places?|cadeaux?|lots?|entr[ée]es) [àa] gagner',
+    '\bgagnez\b',
+]
+lien = ['/jeux?/', '/concours/']
+rubrique = ['^(jeux|jeux-concours|concours)$']
+
+[R05_meteo_service]
+description = "Bulletins météo quotidiens (la tempête, elle, est de l'actualité)"
+titre = ['^la m[ée]t[ée]o (à|a|du|de|pour)\b', '^m[ée]t[ée]o du (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)']
+lien = ['-meteo-du-']
+
+[R06_page_service]
+description = "Pages de service mises à jour en continu, rendez-vous et fiches intemporelles"
+titre = [
+    '^carte\s*[.:]',
+    'prix des carburants',
+    'les moins ch[èe]res',
+    'pharmacies? de garde',
+    '''commentaire de l['’][ée]vangile''',
+]
+lien = ['/definitions/']
+
+[R07_media_seul]
+description = "Diaporamas, vidéos et podcasts sans article"
+# « VIDÉO. » et « REPLAY. » en tête de titre n'en font pas partie : ce sont de vrais
+# articles (avec une vidéo, ou un direct terminé). Voir le journal dans docs/qualite.md.
+titre = [
+    '^en images\b',
+    '^direct vid[ée]o\b',
+    'suivez .* en (direct|live) sur',
+    '^podcast\b',
+    '\bdiaporama\b',
+]
+lien = ['/videos?/', '/diaporama', '/podcasts?/']
+
+[R08_autopromo]
+description = "Le média parle de lui-même : ses événements, ses offres, son application"
+titre = [
+    'territoires awards',
+    'bfm la tribune',
+    'abonnez-vous',
+    '\bnotre (newsletter|application|appli)\b',
+    'lance son (espace|application|appli|offre|podcast|newsletter)',
+]
+
+[R09_recapitulatif]
+description = "Récapitulatifs multi-sujets : ils brouilleraient le regroupement par thèmes"
+titre = [
+    '''l['’]actu de ce\b''',
+    '''l['’]essentiel de l['’]actu''',
+    '''ce qu['’]il faut retenir de (la journ[ée]e|ce)''',
+    '''les infos? (du jour|de ce)''',
+    '^le r[ée]cap\b',
+]

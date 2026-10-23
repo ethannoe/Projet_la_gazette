@@ -184,3 +184,8 @@ def report(conn: psycopg.Connection) -> list[dict]:
     )
     columns = [col.name for col in cur.description]
     return [dict(zip(columns, row, strict=True)) for row in cur]
+
+
+def forget_rejections(conn: psycopg.Connection, regle: str) -> int:
+    """Oublie les rejets d'une règle : le prochain nettoyage les repassera dans les règles."""
+    return conn.execute("DELETE FROM rejets WHERE regle = %s", (regle,)).rowcount

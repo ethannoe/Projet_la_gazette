@@ -33,12 +33,19 @@ class FeedServer:
     def __init__(self):
         self.routes: dict[str, dict] = {}
         self.requests: list[tuple[str, dict]] = []
+        self.posts: list[tuple[str, bytes]] = []
         server = self
 
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self):
                 server.requests.append((self.path, dict(self.headers)))
                 server.respond(self)
+
+            def do_POST(self):  # le webhook d'alerte
+                taille = int(self.headers.get("Content-Length", 0))
+                server.posts.append((self.path, self.rfile.read(taille)))
+                self.send_response(204)
+                self.end_headers()
 
             def log_message(self, *args):
                 pass

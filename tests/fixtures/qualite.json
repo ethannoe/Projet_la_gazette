@@ -1,0 +1,337 @@
+{
+  "pollueurs": [
+    {
+      "regle_attendue": "R03_programme_tv",
+      "item": {
+        "id": "37be69ff6d380e81",
+        "source": "ouestfrance",
+        "lien": "https://programmetv.ouest-france.fr/chaines/programme-tv-tf1-192/je-suis-degoutee-angele-annule-en-derniere-minute-sa-participation-aux-nrj-music-awards-sur-tf1-217a4112-cd73-11f1-bf87-17eca79cb13c",
+        "titre": "« Je suis dégoûtée » : Angèle annule en dernière minute sa participation aux « NRJ Music Awards » sur TF1",
+        "resume": "La chanteuse belge qui vient tout juste de sortir son nouvel album, « Instinct », a annoncé sur les réseaux sociaux qu’elle ne pourrait finalement pas se produire sur la scène du Palais de festivals de Cannes ce vendredi 23 octobre, dans le show animé par Nikos Aliagas.",
+        "publie_le": "2026-10-22T09:30:08+00:00",
+        "recupere_le": "2026-10-22T09:46:25+00:00",
+        "rubrique": "chaines",
+        "payload": {
+          "id": "https://programmetv.ouest-france.fr/chaines/programme-tv-tf1-192/je-suis-degoutee-angele-annule-en-derniere-minute-sa-participation-aux-nrj-music-awards-sur-tf1-217a4112-cd73-11f1-bf87-17eca79cb13c?utm_source=fluxpublicactu&utm_medium=fluxrss&utm_campaign=banquedecontenu",
+          "title": "« Je suis dégoûtée » : Angèle annule en dernière minute sa participation aux « NRJ Music Awards » sur TF1",
+          "link": "https://programmetv.ouest-france.fr/chaines/programme-tv-tf1-192/je-suis-degoutee-angele-annule-en-derniere-minute-sa-participation-aux-nrj-music-awards-sur-tf1-217a4112-cd73-11f1-bf87-17eca79cb13c?utm_source=fluxpublicactu&utm_medium=fluxrss&utm_campaign=banquedecontenu",
+          "published": "Thu, 22 Oct 2026 09:30:08 GMT",
+          "summary": "La chanteuse belge qui vient tout juste de sortir son nouvel album, « Instinct », a annoncé sur les réseaux sociaux qu’elle ne pourrait finalement pas se produire sur la scène du Palais de festivals de Cannes ce vendredi 23 octobre, dans le show animé par Nikos Aliagas."
+        }
+      }
+    },
+    {
+      "regle_attendue": "R05_meteo_service",
+      "item": {
+        "id": "e6f5a2a8d7f1c179",
+        "source": "sudouest",
+        "lien": "https://www.sudouest.fr/gironde/bordeaux/bordeaux-meteo-du-jeudi-22-octobre-2026-31182838.php",
+        "titre": "La météo à Bordeaux du jeudi 22 octobre 2026",
+        "resume": "Le pourcentage d'hygrométrie montera aujourd'hui sur la ville, avec le passage de pluies éparses.",
+        "publie_le": "2026-10-22T04:00:08+00:00",
+        "recupere_le": "2026-10-22T09:46:25+00:00",
+        "rubrique": "gironde",
+        "payload": {
+          "id": "https://www.sudouest.fr/gironde/bordeaux/bordeaux-meteo-du-jeudi-22-octobre-2026-31182838.php",
+          "title": "La météo à Bordeaux du jeudi 22 octobre 2026",
+          "link": "https://www.sudouest.fr/gironde/bordeaux/bordeaux-meteo-du-jeudi-22-octobre-2026-31182838.php",
+          "published": "Thu, 22 Oct 2026 06:00:08 +0200",
+          "summary": "Le pourcentage d'hygrométrie montera aujourd'hui sur la ville, avec le passage de pluies éparses."
+        }
+      }
+    },
+    {
+      "regle_attendue": "R06_page_service",
+      "item": {
+        "id": "4016ae38fa2f070c",
+        "source": "ladepeche",
+        "lien": "https://www.ladepeche.fr/2026/09/17/carte-prix-des-carburants-tarifs-stations-et-bornes-de-recharge-electrique-les-moins-cheres-ruptures-tous-les-details-departement-par-departement-13553975.php",
+        "titre": "CARTE. Prix des carburants : tarifs, stations et bornes de recharge électrique les moins chères, ruptures... Tous les détails département par département",
+        "resume": "Les prix des carburants battent des records. Les stations-service les moins chères sont prises d'assaut, créant ponctuellement des pénuries. Tarifs, ruptures, stations les moins onéreuses... retrouvez les détails pour...",
+        "publie_le": "2026-09-17T04:55:18+00:00",
+        "recupere_le": "2026-10-22T10:20:14+00:00",
+        "rubrique": "Carburants",
+        "payload": {
+          "id": "https://www.ladepeche.fr/2026/09/17/carte-prix-des-carburants-tarifs-stations-et-bornes-de-recharge-electrique-les-moins-cheres-ruptures-tous-les-details-departement-par-departement-13553975.php",
+          "title": "CARTE. Prix des carburants : tarifs, stations et bornes de recharge électrique les moins chères, ruptures... Tous les détails département par département",
+          "link": "https://www.ladepeche.fr/2026/09/17/carte-prix-des-carburants-tarifs-stations-et-bornes-de-recharge-electrique-les-moins-cheres-ruptures-tous-les-details-departement-par-departement-13553975.php",
+          "published": "Thu, 17 Sep 2026 06:55:18 +0200",
+          "summary": "Les prix des carburants battent des records. Les stations-service les moins chères sont prises d'assaut, créant ponctuellement des pénuries. Tarifs, ruptures, stations les moins onéreuses... retrouvez les détails pour...",
+          "tags": [
+            "Carburants"
+          ]
+        }
+      }
+    },
+    {
+      "regle_attendue": "R04_jeux",
+      "item": {
+        "id": "fcc3d4cde05f6a60",
+        "source": "ladepeche",
+        "lien": "https://www.ladepeche.fr/2025/10/16/la-depeche-du-midi-lance-son-espace-jeux-a-vos-neurones-prets-partez-12992238.php",
+        "titre": "La Dépêche du Midi lance son espace jeux : à vos neurones, prêts, jouez !",
+        "resume": "Belote, Mots croisés, Mot du jour, Sudoku… À partir d’aujourd’hui, vos moments de détente prennent une nouvelle dimension. Découvrez notre tout nouveau service de jeux en ligne, accessible depuis le Club Abonnés, avec...",
+        "publie_le": "2025-10-16T08:26:47+00:00",
+        "recupere_le": "2026-10-22T10:20:14+00:00",
+        "rubrique": "Médias-Communication",
+        "payload": {
+          "id": "https://www.ladepeche.fr/2025/10/16/la-depeche-du-midi-lance-son-espace-jeux-a-vos-neurones-prets-partez-12992238.php",
+          "title": "La Dépêche du Midi lance son espace jeux : à vos neurones, prêts, jouez !",
+          "link": "https://www.ladepeche.fr/2025/10/16/la-depeche-du-midi-lance-son-espace-jeux-a-vos-neurones-prets-partez-12992238.php",
+          "published": "Thu, 16 Oct 2025 10:26:47 +0200",
+          "summary": "Belote, Mots croisés, Mot du jour, Sudoku… À partir d’aujourd’hui, vos moments de détente prennent une nouvelle dimension. Découvrez notre tout nouveau service de jeux en ligne, accessible depuis le Club Abonnés, avec...",
+          "tags": [
+            "Médias-Communication"
+          ]
+        }
+      }
+    },
+    {
+      "regle_attendue": "R08_autopromo",
+      "item": {
+        "id": "e2241d1dc9474ecd",
+        "source": "latribune",
+        "lien": "https://www.latribune.fr/article/economie/32998638926175/territoires-awards-bfm-la-tribune-recompense-l-excellence-entreprenariale",
+        "titre": "Territoires Awards : BFM La Tribune récompense l’excellence entreprenariale",
+        "resume": "Cette première édition, dont le thème est « Racines françaises, ambition mondiale », porte son regard vers les PME, ETI, grands groupes et les dirigeants qui font l’économie du Sud. Organisée à Marseille ce 20 octobre, cet événement récompensera notamment l’engagement territorial, la croissance, le rayonnement international ou encore l’innovation",
+        "publie_le": "2026-10-19T10:04:29+00:00",
+        "recupere_le": "2026-10-22T10:20:14+00:00",
+        "rubrique": "article",
+        "payload": {
+          "id": "https://www.latribune.fr/article/economie/32998638926175/territoires-awards-bfm-la-tribune-recompense-l-excellence-entreprenariale",
+          "title": "Territoires Awards : BFM La Tribune récompense l’excellence entreprenariale",
+          "link": "https://www.latribune.fr/article/economie/32998638926175/territoires-awards-bfm-la-tribune-recompense-l-excellence-entreprenariale",
+          "published": "Mon, 19 Oct 2026 10:04:29 GMT",
+          "summary": "Cette première édition, dont le thème est « Racines françaises, ambition mondiale », porte son regard vers les PME, ETI, grands groupes et les dirigeants qui font l’économie du Sud. Organisée à Marseille ce 20 octobre, cet événement récompensera notamment l’engagement territorial, la croissance, le rayonnement international ou encore l’innovation"
+        }
+      }
+    },
+    {
+      "regle_attendue": "R07_media_seul",
+      "item": {
+        "id": "67657ed3cf15ef57",
+        "source": "sudouest",
+        "lien": "https://www.sudouest.fr/sport/rugby/direct-video-ubb-espoirs-suivez-la-rencontre-face-a-l-aviron-bayonnais-en-live-sur-tv7-31170486.php",
+        "titre": "DIRECT VIDÉO. UBB Espoirs : Suivez la rencontre face à l’Aviron Bayonnais en live sur TV7",
+        "resume": "Les Espoirs de l’Union Bordeaux Bègles affronteront l’Aviron Bayonnais, ce samedi 24 octobre à 14 heures. Suivez la rencontre sur TV7 en direct à partir de 13h40",
+        "publie_le": "2026-10-22T10:00:00+00:00",
+        "recupere_le": "2026-10-22T10:08:04+00:00",
+        "rubrique": "sport",
+        "payload": {
+          "id": "https://www.sudouest.fr/sport/rugby/direct-video-ubb-espoirs-suivez-la-rencontre-face-a-l-aviron-bayonnais-en-live-sur-tv7-31170486.php",
+          "title": "DIRECT VIDÉO. UBB Espoirs : Suivez la rencontre face à l’Aviron Bayonnais en live sur TV7",
+          "link": "https://www.sudouest.fr/sport/rugby/direct-video-ubb-espoirs-suivez-la-rencontre-face-a-l-aviron-bayonnais-en-live-sur-tv7-31170486.php",
+          "published": "Thu, 22 Oct 2026 12:00:00 +0200",
+          "summary": "Les Espoirs de l’Union Bordeaux Bègles affronteront l’Aviron Bayonnais, ce samedi 24 octobre à 14 heures. Suivez la rencontre sur TV7 en direct à partir de 13h40"
+        }
+      }
+    },
+    {
+      "regle_attendue": "R07_media_seul",
+      "item": {
+        "id": "6e1bd0cea9210c54",
+        "source": "liberation",
+        "lien": "https://www.liberation.fr/international/europe/en-images-la-jeunesse-deurope-se-revolte-20261022_KOHEJQ7CSZA5JDN4US3QW45OD4/",
+        "titre": "EN IMAGES - La jeunesse d’Europe se révolte",
+        "resume": "Après l’Albanie et la France, un vent contestataire se lève sur le continent. Au cœur des revendications, de meilleures conditions d’études et la fin de la précarité.",
+        "publie_le": "2026-10-22T04:30:00+00:00",
+        "recupere_le": "2026-10-22T09:46:25+00:00",
+        "rubrique": "international",
+        "payload": {
+          "id": "https://www.liberation.fr/international/europe/en-images-la-jeunesse-deurope-se-revolte-20261022_KOHEJQ7CSZA5JDN4US3QW45OD4/",
+          "title": "EN IMAGES - La jeunesse d’Europe se révolte",
+          "link": "https://www.liberation.fr/international/europe/en-images-la-jeunesse-deurope-se-revolte-20261022_KOHEJQ7CSZA5JDN4US3QW45OD4/",
+          "published": "Thu, 22 Oct 2026 04:30:00 +0000",
+          "summary": "Après l’Albanie et la France, un vent contestataire se lève sur le continent. Au cœur des revendications, de meilleures conditions d’études et la fin de la précarité."
+        }
+      }
+    },
+    {
+      "regle_attendue": "R06_page_service",
+      "item": {
+        "id": "2164cad3306cf9b0",
+        "source": "lacroix",
+        "lien": "https://www.la-croix.com/religion/feu-foi-bapteme-commentaire-de-l-evangile-du-jeudi-22-octobre-20261019",
+        "titre": "Feu, foi, baptême. Commentaire de l’Évangile du jeudi 22 octobre",
+        "resume": "Jeudi de la 29e Semaine du Temps Ordinaire (Lc 12, 49-53) et Mémoire de Saint Jean-Paul II, pape",
+        "publie_le": "2026-10-22T03:48:00+00:00",
+        "recupere_le": "2026-10-22T09:46:23+00:00",
+        "rubrique": "religion",
+        "payload": {
+          "id": "https://www.la-croix.com/religion/feu-foi-bapteme-commentaire-de-l-evangile-du-jeudi-22-octobre-20261019",
+          "title": "Feu, foi, baptême. Commentaire de l’Évangile du jeudi 22 octobre",
+          "link": "https://www.la-croix.com/religion/feu-foi-bapteme-commentaire-de-l-evangile-du-jeudi-22-octobre-20261019",
+          "published": "Thu, 22 Oct 2026 05:48:00 +0200",
+          "summary": "Jeudi de la 29e Semaine du Temps Ordinaire (Lc 12, 49-53) et Mémoire de Saint Jean-Paul II, pape"
+        }
+      }
+    },
+    {
+      "regle_attendue": "R06_page_service",
+      "item": {
+        "id": "14b953bad35462df",
+        "source": "lacroix",
+        "lien": "https://www.la-croix.com/Definitions/Figures-spirituelles/Saint-Jean-Paul-II/Jean-Paul-II-apotre-de-la-jeunesse-et-de-la-liberte",
+        "titre": "Jean-Paul II, apôtre de la jeunesse et de la liberté",
+        "resume": "Les catholiques célèbrent la fête de saint Jean-Paul II le 22 octobre. Élu pape à 58 ans, originaire d’un pays communiste, il a impressionné par son charisme et son dynamisme. Il a été canonisé par le pape François le 27 avril 2014, neuf ans après sa mort.",
+        "publie_le": "2026-10-22T07:55:38+00:00",
+        "recupere_le": "2026-10-22T09:46:23+00:00",
+        "rubrique": "Definitions",
+        "payload": {
+          "id": "https://www.la-croix.com/Definitions/Figures-spirituelles/Saint-Jean-Paul-II/Jean-Paul-II-apotre-de-la-jeunesse-et-de-la-liberte",
+          "title": "Jean-Paul II, apôtre de la jeunesse et de la liberté",
+          "link": "https://www.la-croix.com/Definitions/Figures-spirituelles/Saint-Jean-Paul-II/Jean-Paul-II-apotre-de-la-jeunesse-et-de-la-liberte",
+          "published": "Thu, 22 Oct 2026 09:55:38 +0200",
+          "summary": "Les catholiques célèbrent la fête de saint Jean-Paul II le 22 octobre. Élu pape à 58 ans, originaire d’un pays communiste, il a impressionné par son charisme et son dynamisme. Il a été canonisé par le pape François le 27 avril 2014, neuf ans après sa mort."
+        }
+      }
+    },
+    {
+      "regle_attendue": "R09_recapitulatif",
+      "item": {
+        "id": "6bcf1ed258dba1b9",
+        "source": "liberation",
+        "lien": "https://www.liberation.fr/international/europe/tempete-austen-interdictions-de-manifester-presentation-du-tour-de-france-lactu-de-ce-jeudi-22-octobre-au-matin-20261022_B5FDZ2ZLYFBL5DXIZJCPCCWZBM/",
+        "titre": "Tempête Austen, interdictions de manifester, présentation du Tour de France… L’actu de ce jeudi 22 octobre au matin",
+        "resume": "La rédaction de «Libération» compile les principales infos du jour.",
+        "publie_le": "2026-10-22T05:45:30+00:00",
+        "recupere_le": "2026-10-22T09:46:25+00:00",
+        "rubrique": "international",
+        "payload": {
+          "id": "https://www.liberation.fr/international/europe/tempete-austen-interdictions-de-manifester-presentation-du-tour-de-france-lactu-de-ce-jeudi-22-octobre-au-matin-20261022_B5FDZ2ZLYFBL5DXIZJCPCCWZBM/",
+          "title": "Tempête Austen, interdictions de manifester, présentation du Tour de France… L’actu de ce jeudi 22 octobre au matin",
+          "link": "https://www.liberation.fr/international/europe/tempete-austen-interdictions-de-manifester-presentation-du-tour-de-france-lactu-de-ce-jeudi-22-octobre-au-matin-20261022_B5FDZ2ZLYFBL5DXIZJCPCCWZBM/",
+          "published": "Thu, 22 Oct 2026 05:45:30 +0000",
+          "summary": "La rédaction de «Libération» compile les principales infos du jour."
+        }
+      }
+    }
+  ],
+  "vrais_articles": [
+    {
+      "id": "507d44e4b9f2f2c3",
+      "source": "liberation",
+      "lien": "https://www.liberation.fr/international/europe/le-prix-sakharov-2026-attribue-a-la-cour-penale-internationale-un-pied-de-nez-a-donald-trump-20261022_5DCUDO57G5B75FGS22KENVIBJM/",
+      "titre": "Le prix Sakharov 2026 attribué à la Cour pénale internationale, un pied de nez à Donald Trump",
+      "resume": "Le Parlement européen a décerné ce jeudi cette récompense honorant le combat pour la démocratie et la liberté de pensée.",
+      "publie_le": "2026-10-22T09:59:18+00:00",
+      "recupere_le": "2026-10-22T10:08:04+00:00",
+      "rubrique": "international",
+      "payload": {
+        "id": "https://www.liberation.fr/international/europe/le-prix-sakharov-2026-attribue-a-la-cour-penale-internationale-un-pied-de-nez-a-donald-trump-20261022_5DCUDO57G5B75FGS22KENVIBJM/",
+        "title": "Le prix Sakharov 2026 attribué à la Cour pénale internationale, un pied de nez à Donald Trump",
+        "link": "https://www.liberation.fr/international/europe/le-prix-sakharov-2026-attribue-a-la-cour-penale-internationale-un-pied-de-nez-a-donald-trump-20261022_5DCUDO57G5B75FGS22KENVIBJM/",
+        "published": "Thu, 22 Oct 2026 09:59:18 +0000",
+        "summary": "Le Parlement européen a décerné ce jeudi cette récompense honorant le combat pour la démocratie et la liberté de pensée."
+      }
+    },
+    {
+      "id": "0f26d583b5c2b481",
+      "source": "lemonde",
+      "lien": "https://www.lemonde.fr/planete/article/2026/10/22/tempete-austen-cinq-departements-en-vigilance-orange-a-partir-de-jeudi-soir-le-trafic-ferroviaire-perturbe-vendredi_6798578_3244.html",
+      "titre": "Tempête Austen : cinq départements en vigilance orange à partir de jeudi soir ; le trafic ferroviaire perturbé vendredi",
+      "resume": "La tempête Austen pourrait aussi entraîner une vigilance orange « vagues-submersion » sur le nord de la Bretagne, selon Météo-France.",
+      "publie_le": "2026-10-22T05:52:24+00:00",
+      "recupere_le": "2026-10-22T09:46:23+00:00",
+      "rubrique": "planete",
+      "payload": {
+        "id": "https://www.lemonde.fr/planete/article/2026/10/22/tempete-austen-cinq-departements-en-vigilance-orange-a-partir-de-jeudi-soir-le-trafic-ferroviaire-perturbe-vendredi_6798578_3244.html",
+        "title": "Tempête Austen : cinq départements en vigilance orange à partir de jeudi soir ; le trafic ferroviaire perturbé vendredi",
+        "link": "https://www.lemonde.fr/planete/article/2026/10/22/tempete-austen-cinq-departements-en-vigilance-orange-a-partir-de-jeudi-soir-le-trafic-ferroviaire-perturbe-vendredi_6798578_3244.html",
+        "published": "Thu, 22 Oct 2026 07:52:24 +0200",
+        "summary": "La tempête Austen pourrait aussi entraîner une vigilance orange « vagues-submersion » sur le nord de la Bretagne, selon Météo-France."
+      }
+    },
+    {
+      "id": "51bc185022d50f3d",
+      "source": "ladepeche",
+      "lien": "https://www.ladepeche.fr/2026/10/21/une-migration-ratee-vers-la-5g-serait-a-lorigine-de-la-panne-massive-du-reseau-orange-qui-a-touche-des-millions-dabonnes-13614008.php",
+      "titre": "Panne Orange : une migration ratée vers la 5G serait à l'origine de la coupure massive du réseau qui a touché des millions d'abonnés",
+      "resume": "Une panne majeure a frappé le réseau mobile d'Orange ce mercredi 21 octobre, affectant des millions d'abonnés en France. La cause serait une migration ratée vers le réseau 5G SA. Les appels d'urgence n'ont pas été...",
+      "publie_le": "2026-10-22T05:43:24+00:00",
+      "recupere_le": "2026-10-22T10:20:14+00:00",
+      "rubrique": "Téléphonie - Internet",
+      "payload": {
+        "id": "https://www.ladepeche.fr/2026/10/21/une-migration-ratee-vers-la-5g-serait-a-lorigine-de-la-panne-massive-du-reseau-orange-qui-a-touche-des-millions-dabonnes-13614008.php",
+        "title": "Panne Orange : une migration ratée vers la 5G serait à l'origine de la coupure massive du réseau qui a touché des millions d'abonnés",
+        "link": "https://www.ladepeche.fr/2026/10/21/une-migration-ratee-vers-la-5g-serait-a-lorigine-de-la-panne-massive-du-reseau-orange-qui-a-touche-des-millions-dabonnes-13614008.php",
+        "published": "Thu, 22 Oct 2026 07:43:24 +0200",
+        "summary": "Une panne majeure a frappé le réseau mobile d'Orange ce mercredi 21 octobre, affectant des millions d'abonnés en France. La cause serait une migration ratée vers le réseau 5G SA. Les appels d'urgence n'ont pas été...",
+        "tags": [
+          "Téléphonie - Internet"
+        ]
+      }
+    },
+    {
+      "id": "473a86a89ec97e13",
+      "source": "ladepeche",
+      "lien": "https://www.ladepeche.fr/2026/10/22/hausse-du-prix-des-pellets-de-bois-pour-linstant-laugmentation-pourrait-faire-gonfler-la-facture-de-chauffage-de-plus-de-300-euros-13614815.php",
+      "titre": "Hausse du prix des pellets de bois : pour l'instant, l'augmentation pourrait faire gonfler la facture de chauffage de plus de 300 euros",
+      "resume": "Alors que les températures baissent, le prix des granulés de bois augmente. En quelques semaines, la tonne en vrac a augmenté de près de 80 euros. Pour les ménages qui se chauffent aux pellets, le moment de passer...",
+      "publie_le": "2026-10-22T08:18:41+00:00",
+      "recupere_le": "2026-10-22T10:20:14+00:00",
+      "rubrique": "Vie pratique - conso",
+      "payload": {
+        "id": "https://www.ladepeche.fr/2026/10/22/hausse-du-prix-des-pellets-de-bois-pour-linstant-laugmentation-pourrait-faire-gonfler-la-facture-de-chauffage-de-plus-de-300-euros-13614815.php",
+        "title": "Hausse du prix des pellets de bois : pour l'instant, l'augmentation pourrait faire gonfler la facture de chauffage de plus de 300 euros",
+        "link": "https://www.ladepeche.fr/2026/10/22/hausse-du-prix-des-pellets-de-bois-pour-linstant-laugmentation-pourrait-faire-gonfler-la-facture-de-chauffage-de-plus-de-300-euros-13614815.php",
+        "published": "Thu, 22 Oct 2026 10:18:41 +0200",
+        "summary": "Alors que les températures baissent, le prix des granulés de bois augmente. En quelques semaines, la tonne en vrac a augmenté de près de 80 euros. Pour les ménages qui se chauffent aux pellets, le moment de passer...",
+        "tags": [
+          "Vie pratique - conso"
+        ]
+      }
+    },
+    {
+      "id": "12ba99a4b1a68c7e",
+      "source": "lacroix",
+      "lien": "https://www.la-croix.com/culture/audiovisuel-public-le-gouvernement-prend-des-mesures-pour-renforcer-l-impartialite-20261021",
+      "titre": "Audiovisuel public : le gouvernement prend des mesures pour renforcer l’impartialité",
+      "resume": "Le gouvernement a publié mercredi 21 octobre un décret renforçant les obligations déontologiques de France Télévisions, Radio France et France Médias Monde en matière d’impartialité.",
+      "publie_le": "2026-10-21T18:49:59+00:00",
+      "recupere_le": "2026-10-22T09:46:23+00:00",
+      "rubrique": "culture",
+      "payload": {
+        "id": "https://www.la-croix.com/culture/audiovisuel-public-le-gouvernement-prend-des-mesures-pour-renforcer-l-impartialite-20261021",
+        "title": "Audiovisuel public : le gouvernement prend des mesures pour renforcer l’impartialité",
+        "link": "https://www.la-croix.com/culture/audiovisuel-public-le-gouvernement-prend-des-mesures-pour-renforcer-l-impartialite-20261021",
+        "published": "Wed, 21 Oct 2026 20:49:59 +0200",
+        "summary": "Le gouvernement a publié mercredi 21 octobre un décret renforçant les obligations déontologiques de France Télévisions, Radio France et France Médias Monde en matière d’impartialité."
+      }
+    },
+    {
+      "id": "d871672d4e3e8300",
+      "source": "lacroix",
+      "lien": "https://www.la-croix.com/religion/sante-du-pape-convalescent-leon-xiv-reprend-ses-audiences-mais-son-agenda-reste-incertain-20261021",
+      "titre": "Santé du pape : convalescent, Léon XIV reprend ses audiences, mais son agenda reste incertain",
+      "resume": "Huit jours après l’ablation d’un lobe du poumon droit, le pape a enchaîné, mercredi 21 octobre, un discours au Vatican et sa première audience générale depuis son hospitalisation. Le Saint-Siège ne s’est toujours pas prononcé sur sa venue à Assise, le 27 octobre. Son voyage en Amérique latine est à ce stade confirmé.",
+      "publie_le": "2026-10-21T10:18:59+00:00",
+      "recupere_le": "2026-10-22T09:46:23+00:00",
+      "rubrique": "religion",
+      "payload": {
+        "id": "https://www.la-croix.com/religion/sante-du-pape-convalescent-leon-xiv-reprend-ses-audiences-mais-son-agenda-reste-incertain-20261021",
+        "title": "Santé du pape : convalescent, Léon XIV reprend ses audiences, mais son agenda reste incertain",
+        "link": "https://www.la-croix.com/religion/sante-du-pape-convalescent-leon-xiv-reprend-ses-audiences-mais-son-agenda-reste-incertain-20261021",
+        "published": "Wed, 21 Oct 2026 12:18:59 +0200",
+        "summary": "Huit jours après l’ablation d’un lobe du poumon droit, le pape a enchaîné, mercredi 21 octobre, un discours au Vatican et sa première audience générale depuis son hospitalisation. Le Saint-Siège ne s’est toujours pas prononcé sur sa venue à Assise, le 27 octobre. Son voyage en Amérique latine est à ce stade confirmé."
+      }
+    },
+    {
+      "id": "5288919b73c887ae",
+      "source": "lacroix",
+      "lien": "https://www.la-croix.com/international/mouvements-lyceens-la-crise-des-jeunes-en-france-peut-elle-faire-tache-d-huile-dans-toute-leurope-20261022",
+      "titre": "Mouvements lycéens : la crise des jeunes en France peut-elle faire tache d’huile dans toute l’Europe ?",
+      "resume": "Si les manifestations des lycéens en France ont bénéficié d’une forte visibilité à l’étranger, ces mobilisations se développent aussi dans plusieurs villes européennes : Bruxelles, Milan, Athènes, Tirana… Les jeunes éprouvent les mêmes angoisses concernant leur avenir et auxquelles les gouvernements peinent à répondre.",
+      "publie_le": "2026-10-22T09:33:27+00:00",
+      "recupere_le": "2026-10-22T09:46:23+00:00",
+      "rubrique": "international",
+      "payload": {
+        "id": "https://www.la-croix.com/international/mouvements-lyceens-la-crise-des-jeunes-en-france-peut-elle-faire-tache-d-huile-dans-toute-leurope-20261022",
+        "title": "Mouvements lycéens : la crise des jeunes en France peut-elle faire tache d’huile dans toute l’Europe ?",
+        "link": "https://www.la-croix.com/international/mouvements-lyceens-la-crise-des-jeunes-en-france-peut-elle-faire-tache-d-huile-dans-toute-leurope-20261022",
+        "published": "Thu, 22 Oct 2026 11:33:27 +0200",
+        "summary": "Si les manifestations des lycéens en France ont bénéficié d’une forte visibilité à l’étranger, ces mobilisations se développent aussi dans plusieurs villes européennes : Bruxelles, Milan, Athènes, Tirana… Les jeunes éprouvent les mêmes angoisses concernant leur avenir et auxquelles les gouvernements peinent à répondre."
+      }
+    }
+  ]
+}
