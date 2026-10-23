@@ -26,5 +26,5 @@ def envoyer(message: str, url: str | None) -> bool:
     except requests.RequestException as exc:
         log.error("alerte non envoyée, le webhook a échoué : %s", type(exc).__name__)
         return False
-    log.info("alerte envoyée", extra={"champs": {"evenement": "alerte", "message": message}})
+    log.info("alerte envoyée", extra={"champs": {"evenement": "alerte", "texte": message}})
     return True

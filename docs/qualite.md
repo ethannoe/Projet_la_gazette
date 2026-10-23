@@ -116,6 +116,11 @@ Le cadrage avait déjà écarté Great Expectations, trop lourd ici.
 - **L'alerte** part vers le webhook Discord ou Slack de l'équipe (`GAZETTE_ALERTE_WEBHOOK`,
   dans `.env`) quand un fait **devient** faux, puis quand il redevient vrai. Elle ne part
   pas toutes les 30 min tant que le problème dure.
+- **Alerte déclenchée pour de vrai le 23/10/2026** : le contrôle a été lancé sur les vraies
+  données avec le seuil de `C03` abaissé à 5 % au lieu de 80 %. À 12 h 30 UTC, il est passé en
+  échec (La Tribune 8 %, Sud Ouest 6 %, Ouest-France 8 %), et l'alerte 🔴 est arrivée sur le
+  Discord de l'équipe. Remis au seuil normal, le contrôle est redevenu vrai, et le message
+  🟢 « rétabli » est arrivé à 12 h 31.
 - **L'incident du 22/10** : si ces contrôles avaient existé, `C05` et `C04` auraient sonné
   dès 15 h 23 UTC, au lieu de 22 h de silence avec 8 sources endormies.
 
