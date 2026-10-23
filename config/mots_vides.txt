@@ -1,0 +1,13 @@
+# Mots vides pour nommer les thèmes : mots trop fréquents ou propres à la presse, qui
+# ne disent rien d'un thème. Un ou plusieurs mots par ligne ; # pour un commentaire.
+a à afin ai aie aient aies ait alors après as au aucun aucune auprès aussi autre autres aux avait avaient avant avec avez avoir avons ayant
+bien c ça car ce ceci cela celle celles celui cependant certains ces cet cette ceux chaque chez ci comme comment contre d dans de depuis des dès deux devant doit donc dont du durant
+elle elles en encore entre est et étaient était été être eu eux faire fait faut font fut
+il ils j je jusqu l la le les leur leurs lors lui m ma mais me même mes moi moins mon n ne ni non nos notre nous
+on ont ou où par parce pas pendant peu peut plus plusieurs pour pourquoi près puis qu quand que quel quelle quelles quels qui quoi
+sa sans se selon ses si sinon soit son sont sous sur ta te tes toi ton tous tout toute toutes très trois tu un une unes uns vers via voici voilà vos votre vous y
+ans an année années hier aujourd hui demain jour jours lundi mardi mercredi jeudi vendredi samedi dimanche semaine mois matin soir heure heures
+octobre novembre décembre janvier février mars avril mai juin juillet août septembre
+premier première premiers premières nouveau nouvelle nouveaux nouvelles grand grande grands grandes petit petite dernier dernière
+direct live info infos vidéo vidéos photos images exclusif témoignage décryptage entretien récit enquête interview
+ce qu'il faut savoir retenir quoi sait va vont veut peuvent pourrait doivent dit dire déclare annonce

@@ -1,10 +1,10 @@
 """Du brut au propre, de bout en bout avec une vraie base (bin/test)."""
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
-from gazette import db, rapport
-from gazette.config import Config
+from gazette import config, db, rapport
 from gazette.nettoyage import nettoyer
 from gazette.pipeline import tracer
 from gazette.regles import charger
@@ -118,7 +118,7 @@ def test_doublon_avec_un_article_d_un_passage_precedent(conn, tmp_path):
 def test_tracabilite(conn, tmp_path):
     brut = preparer(conn, tmp_path, ITEMS)
     nettoyer(conn, brut, REGLES, MAINTENANT)
-    cfg = Config("", str(brut), "", 30, 10, "", "", None)
+    cfg = replace(config.load(), articles_dir=str(brut))
     item_id = conn.execute("SELECT item_id FROM articles_propres LIMIT 1").fetchone()[0]
 
     trace = tracer(conn, cfg, item_id)

@@ -108,7 +108,7 @@ def test_retention(conn, tmp_path):
     )
 
     supprimes = retention.purger(
-        conn, tmp_path / "articles_bruts", tmp_path / "rapports", MAINTENANT
+        conn, tmp_path / "articles_bruts", tmp_path / "rapports", maintenant=MAINTENANT
     )
 
     assert supprimes["brut"] == 1 and not vieux.exists() and recent.exists()

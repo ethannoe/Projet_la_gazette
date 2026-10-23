@@ -1,0 +1,28 @@
+# Paramètres du regroupement des thèmes (TD 5).
+# Chaque run enregistre ce fichier en entier (table runs, colonne parametres) et son
+# empreinte : changer une valeur ici, c'est changer de configuration, et ça se voit.
+# Pourquoi ces choix : docs/mlops.md.
+
+fenetre_heures: 24          # les articles propres publiés dans les 24 h avant le run
+
+embeddings:
+  # Multilingue, léger (384 dimensions, 220 Mo en ONNX quantifié), tourne sur CPU via fastembed
+  modele: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  # Le texte vectorisé : « titre. extrait »
+
+regroupement:
+  algorithme: hdbscan       # trouve seul le nombre de thèmes et laisse les articles isolés en bruit
+  min_cluster_size: 3       # un thème = au moins 3 articles
+  min_samples: 2            # densité minimale autour d'un article pour qu'il ancre un thème
+  cluster_selection_method: leaf   # « eom » faisait un seul thème de 47 articles sur les manifestations
+  # Les vecteurs sont normalisés : la distance euclidienne suit alors la distance cosinus
+
+nommage:
+  mots_cles: 8              # mots-clés gardés par thème (TF-IDF par thème, le bruit sert de fond)
+  mots_nom: 3               # les premiers forment le nom : « Tempête · Austen · Électricité »
+  ngram_max: 1              # 2 donnerait « tempête austen », mais aussi des doublons
+  mots_vides: config/mots_vides.txt
+
+planification:
+  heure: "06:30"            # un run par jour, au premier passage du pipeline après cette heure
+  fuseau: Europe/Paris

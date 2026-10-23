@@ -3,6 +3,8 @@
 import os
 from dataclasses import dataclass
 
+from gazette import __version__
+
 
 @dataclass(frozen=True)
 class Config:
@@ -14,6 +16,10 @@ class Config:
     regles_file: str  # règles d'exclusion et seuils
     rapports_dir: str  # rapports de qualité quotidiens
     alerte_webhook: str | None  # webhook Discord ou Slack de l'équipe (secret, dans .env)
+    clustering_file: str  # paramètres du regroupement des thèmes
+    modeles_dir: str  # modèles d'embeddings téléchargés
+    runs_dir: str  # artefacts des runs de regroupement
+    code_version: str  # commit git de l'image, tracé dans chaque run
 
 
 def load() -> Config:
@@ -28,4 +34,8 @@ def load() -> Config:
         regles_file=os.environ.get("GAZETTE_REGLES_FILE", "regles.toml"),
         rapports_dir=os.environ.get("GAZETTE_RAPPORTS_DIR", "rapports"),
         alerte_webhook=os.environ.get("GAZETTE_ALERTE_WEBHOOK") or None,
+        clustering_file=os.environ.get("GAZETTE_CLUSTERING_FILE", "config/clustering.yaml"),
+        modeles_dir=os.environ.get("GAZETTE_MODELES_DIR", "modeles"),
+        runs_dir=os.environ.get("GAZETTE_RUNS_DIR", "runs"),
+        code_version=os.environ.get("GAZETTE_CODE_VERSION") or f"v{__version__}",
     )

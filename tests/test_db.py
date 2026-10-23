@@ -4,7 +4,13 @@ from gazette import db
 
 
 def test_migrations_appliquees_une_seule_fois(conn):
-    toutes = ["001_sources", "002_collectes", "003_articles_propres", "004_controles"]
+    toutes = [
+        "001_sources",
+        "002_collectes",
+        "003_articles_propres",
+        "004_controles",
+        "005_themes",
+    ]
     assert db.migrate(conn) == toutes
     assert db.migrate(conn) == []
     versions = [row[0] for row in conn.execute("SELECT version FROM schema_migrations")]

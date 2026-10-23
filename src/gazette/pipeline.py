@@ -8,8 +8,9 @@ from pathlib import Path
 
 import psycopg
 
-from gazette import controles, nettoyage, rapport, regles, retention
+from gazette import controles, nettoyage, rapport, regles, retention, themes
 from gazette.config import Config
+from gazette.embeddings import EncodeurFastembed
 from gazette.sources import load_sources
 
 
@@ -35,7 +36,33 @@ def rapporter(
 
 
 def retenir(conn: psycopg.Connection, cfg: Config) -> dict[str, int]:
-    return retention.purger(conn, cfg.articles_dir, cfg.rapports_dir)
+    return retention.purger(conn, cfg.articles_dir, cfg.rapports_dir, cfg.runs_dir)
+
+
+def regrouper(
+    conn: psycopg.Connection,
+    cfg: Config,
+    *,
+    declencheur: str = "manuel",
+    fin: datetime | None = None,
+) -> themes.Run | None:
+    """Un run de regroupement tracé. Lancé par le pipeline, il ne tourne qu'une fois par jour."""
+    config_themes = themes.charger_config(cfg.clustering_file)
+    if declencheur == "pipeline" and not themes.run_du_jour_attendu(
+        conn, config_themes, datetime.now(UTC)
+    ):
+        return None
+    encodeur = EncodeurFastembed(config_themes["embeddings"]["modele"], cfg.modeles_dir)
+    return themes.executer(
+        conn,
+        config_themes,
+        encodeur,
+        fin=fin,
+        declencheur=declencheur,
+        runs_dir=cfg.runs_dir,
+        code_version=cfg.code_version,
+        racine=Path(cfg.clustering_file).resolve().parents[1],
+    )
 
 
 def tracer(conn: psycopg.Connection, cfg: Config, cle: str) -> dict | None:

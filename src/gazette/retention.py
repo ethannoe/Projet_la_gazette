@@ -1,6 +1,7 @@
 """Rétention : ce qu'on garde, et combien de temps (le contrat est dans docs/donnees.md)."""
 
 import logging
+import shutil
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
@@ -13,13 +14,14 @@ log = logging.getLogger("gazette.retention")
 BRUT_JOURS = 90  # articles_bruts/ : de quoi rejouer le nettoyage sur un trimestre
 REJETS_JOURS = 90  # même durée que le brut dont ils viennent
 PROPRES_JOURS = 365  # articles_propres : un an d'historique pour les thèmes
-TECHNIQUE_JOURS = 365  # collectes, controles, rapports
+TECHNIQUE_JOURS = 365  # collectes, controles, rapports, runs de regroupement
 
 
 def purger(
     conn: psycopg.Connection,
     articles_dir: str | Path,
     rapports_dir: str | Path,
+    runs_dir: str | Path | None = None,
     maintenant: datetime | None = None,
 ) -> dict[str, int]:
     maintenant = maintenant or datetime.now(UTC)
@@ -50,9 +52,20 @@ def purger(
             ("articles_propres", "publie_le", PROPRES_JOURS),
             ("collectes", "debut", TECHNIQUE_JOURS),
             ("controles", "passage", TECHNIQUE_JOURS),
+            ("runs", "debut", TECHNIQUE_JOURS),  # thèmes et rattachements suivent (CASCADE)
         ):
             cur = conn.execute(f"DELETE FROM {table} WHERE {colonne} < %s", (avant(jours),))
             supprimes[table] = cur.rowcount
+
+    if runs_dir is not None:
+        restants = {row[0] for row in conn.execute("SELECT run_id FROM runs")}
+        for dossier in Path(runs_dir).glob("*/"):
+            if (
+                dossier.name not in restants
+                and dossier.stat().st_mtime < avant(TECHNIQUE_JOURS).timestamp()
+            ):
+                shutil.rmtree(dossier)
+                supprimes["runs_artefacts"] = supprimes.get("runs_artefacts", 0) + 1
 
     if any(supprimes.values()):
         log.info(
