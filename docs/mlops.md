@@ -188,33 +188,5 @@ venaient tous du cache : il a pris 0,2 s. C'est ce run que montre la vue `themes
 | 23 | Nationalistes · Religieux · Sécuritaires | 3 | 2 | cisjordanie, israéliens, israël |
 | 24 | Championne · Monde · Athlétisme | 3 | 2 | jepchirchir, marathon, suspendue |
 
-## Relecture des thèmes (matière du TD 6)
 
-### Journée 1 : 23/10/2026
-
-**Ce qui est bon :**
-- Les grandes histoires du jour sont là, couvertes par plusieurs sources : la fusillade de
-  Trappes (6 sources), la tempête Austen (6 sources), le budget de la Sécu, l'Ukraine, le
-  Tour de France 2027.
-- Les noms sont compréhensibles quand les mots-clés sont des noms propres ou des faits
-  (« Austen · Tempête », « Poutine · Ukraine », « Fibre · Gaudens · Liquidation »).
-
-**Ce qui est absurde ou discutable :**
-- **Une même histoire coupée en plusieurs thèmes** :
-  - les manifestations du 24 octobre se retrouvent dans 5 thèmes (6, 9, 11, 15, 16) ;
-  - la Cisjordanie dans 2 thèmes (18 et 23) ;
-  - les accidents de la route dans 2 thèmes (7 et 8).
-- **Des thèmes qui n'en sont pas** :
-  - « Commerçants · Argentière · Dupin » mélange des fromageries, une peinture et un
-    sélectionné de Sainte-Foy-l'Argentière ;
-  - « Famille · Enfants · Proches » est trop vague.
-- **Des noms bancals** : un prénom (« Dominique »), un mot vide qui passe (« Beaucoup »,
-  « Longtemps »), ou un doublon (« Commerçants · Commerçant »).
-
-**Hypothèses :**
-- La sélection `leaf` découpe trop finement les grandes histoires.
-- Un `min_cluster_size` de 3 laisse passer des groupes de hasard.
-- Le nommage voit les mots, pas leur sens : il ne fusionne pas le singulier et le pluriel,
-  et un prénom fréquent dans 3 articles sort en tête.
-- Les mots vides ne couvrent pas les adverbes.
 
