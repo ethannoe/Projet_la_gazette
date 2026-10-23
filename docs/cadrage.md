@@ -71,6 +71,6 @@ flowchart LR
 | Rôle | Qui |
 |---|---|
 | Sources et collecte | *à compléter* |
-| Stockage et qualité | *à compléter* |
+| Stockage et qualité | *TRUGUET William* |
 | Regroupement par thèmes | *à compléter* |
 | Livraison, supervision, infrastructure | Amsellem Ethan-Noé |
