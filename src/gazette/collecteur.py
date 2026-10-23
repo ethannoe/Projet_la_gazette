@@ -72,12 +72,17 @@ def collect_source(
     bilan.duree_ms = round((time.monotonic() - t0) * 1000)
 
     with conn.transaction():
-        if bilan.statut == "echec":
+        if bilan.statut != "echec":
+            db.record_success(conn, source.id, debut, etag, last_modified)
+        elif bilan.http is None and bilan.tentatives:
+            # Aucune réponse HTTP (connexion impossible, timeout) : on ne sait pas si la
+            # panne vient de la source ou de notre réseau, donc on ne la compte pas pour
+            # le sommeil. Le contrôle de fraîcheur (TD 4) alerte si ça dure.
+            bilan.echecs_consecutifs = db.record_unreachable(conn, source.id, bilan.erreur)
+        else:
             bilan.echecs_consecutifs, bilan.mise_en_sommeil = db.record_failure(
                 conn, source.id, debut, bilan.erreur
             )
-        else:
-            db.record_success(conn, source.id, debut, etag, last_modified)
         db.record_run(conn, debut, bilan)
     _log(bilan)
     return bilan
@@ -145,6 +150,14 @@ def _log(bilan: Bilan) -> None:
             bilan.echecs_consecutifs,
             bilan.erreur,
             bilan.source,
+            extra={"champs": champs},
+        )
+    elif bilan.statut == "echec" and bilan.http is None and bilan.tentatives:
+        log.warning(
+            "%s injoignable (%s) : non compté pour le sommeil, %d échec(s) compté(s)",
+            bilan.source,
+            bilan.erreur,
+            bilan.echecs_consecutifs,
             extra={"champs": champs},
         )
     elif bilan.statut == "echec":

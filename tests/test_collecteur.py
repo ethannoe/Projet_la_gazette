@@ -200,3 +200,27 @@ def test_delai_minimal_entre_deux_requetes(conn, feed_server, tmp_path, fetch):
 
     assert trop_tot == []
     assert feed_server.hits("/monde") == 1
+
+
+def test_source_injoignable_pas_mise_en_sommeil(conn, feed_server, tmp_path, fetch):
+    """Incident du 22/10 : le réseau du Mac coupé a endormi 8 sources en 3 passages."""
+    import socket
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]  # personne n'écoute : connexion refusée
+    path = tmp_path / "sources.csv"
+    path.write_text(
+        f"id,nom,type,region,acces\ncoupee,Coupée,PQN,National,http://127.0.0.1:{port}/flux\n",
+        encoding="utf-8",
+    )
+
+    for _ in range(4):
+        [bilan] = collect_all(conn, path, tmp_path, fetch=fetch)
+        assert bilan.statut == "echec"
+        assert bilan.http is None
+
+    coupee = etat(conn, "coupee")
+    assert coupee["actif"] is True
+    assert coupee["echecs_consecutifs"] == 0
+    assert coupee["derniere_erreur"] == "ConnectionError"

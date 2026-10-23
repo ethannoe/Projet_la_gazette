@@ -130,6 +130,15 @@ def record_failure(
     return echecs, not actif
 
 
+def record_unreachable(conn: psycopg.Connection, source_id: str, erreur: str) -> int:
+    """Note l'erreur sans toucher au compteur d'échecs ; renvoie ce compteur."""
+    (echecs,) = conn.execute(
+        "UPDATE sources SET derniere_erreur = %s WHERE id = %s RETURNING echecs_consecutifs",
+        (erreur, source_id),
+    ).fetchone()
+    return echecs
+
+
 def record_run(conn: psycopg.Connection, debut: datetime, bilan) -> None:
     conn.execute(
         "INSERT INTO collectes (source_id, debut, duree_ms, statut, http_status, tentatives,"
