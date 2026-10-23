@@ -1,19 +1,22 @@
 #!/usr/bin/env sh
-# Démarre tout (Postgres, Prefect, collecte planifiée), fait un premier passage
-# tout de suite, puis affiche l'état des sources.
+# Démarre tout (Postgres, Prefect, pipeline planifié), fait un premier passage
+# tout de suite (collecte, nettoyage, contrôles), puis affiche l'état des sources.
 #   bin/dev                       toutes les sources
 #   bin/dev --source liberation   un premier passage sur une seule source
 set -eu
 cd "$(dirname "$0")/.."
 
-mkdir -p articles_bruts
+mkdir -p articles_bruts rapports
 export LOCAL_USER="$(id -u):$(id -g)"
 
 docker compose up --build --detach db prefect collecteur
 docker compose run --rm collecteur collecter "$@" || true  # une source en échec n'est pas une erreur ici
+docker compose run --rm collecteur nettoyer
+docker compose run --rm collecteur controler || true  # un contrôle en échec est signalé, pas bloquant
 docker compose run --rm collecteur etat
 
 echo
-echo "Items bruts : ./articles_bruts/<source>/ ; collecte toutes les ${GAZETTE_INTERVALLE_MIN:-30} min."
+echo "Items bruts : ./articles_bruts/<source>/ ; rapport de qualité : ./rapports/qualite-$(date -u +%F).md"
+echo "Le pipeline repasse toutes les ${GAZETTE_INTERVALLE_MIN:-30} min."
 echo "Interface Prefect : http://localhost:4200 ; journaux : docker compose logs -f collecteur"
 echo "Tout arrêter : docker compose down"

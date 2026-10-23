@@ -16,7 +16,7 @@ RUN pip install .
 # --- 2. test : builder + outils de dev ; utilisé par bin/test ---
 FROM builder AS test
 RUN pip install ".[dev]"
-COPY sources.csv ./
+COPY sources.csv regles.toml ./
 COPY tests ./tests
 CMD ["sh", "-c", "ruff check src tests && pytest -p no:cacheprovider"]
 
@@ -27,13 +27,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH=/opt/venv/bin:$PATH \
     GAZETTE_ARTICLES_DIR=/data/articles_bruts \
     GAZETTE_SOURCES_FILE=/app/sources.csv \
+    GAZETTE_REGLES_FILE=/app/regles.toml \
+    GAZETTE_RAPPORTS_DIR=/data/rapports \
     PREFECT_HOME=/tmp/prefect
 RUN groupadd --gid 10001 gazette \
  && useradd --uid 10001 --gid gazette --no-create-home --shell /usr/sbin/nologin gazette \
- && mkdir -p /data/articles_bruts && chown -R gazette:gazette /data
+ && mkdir -p /data/articles_bruts /data/rapports && chown -R gazette:gazette /data
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
-COPY sources.csv ./
+COPY sources.csv regles.toml ./
 USER gazette
 ENTRYPOINT ["python", "-m", "gazette"]
 CMD ["planifier"]

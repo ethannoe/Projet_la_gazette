@@ -38,7 +38,8 @@ services:
       retries: 20
     restart: unless-stopped
 
-  # La collecte planifiée : un passage toutes les GAZETTE_INTERVALLE_MIN minutes
+  # Le pipeline planifié : collecte, nettoyage, contrôles et rapport,
+  # toutes les GAZETTE_INTERVALLE_MIN minutes
   collecteur:
     build:
       context: .
@@ -53,8 +54,11 @@ services:
       GAZETTE_DELAI_MIN: ${GAZETTE_DELAI_MIN:-10}
       PREFECT_API_URL: http://prefect:4200/api
       PREFECT_LOGGING_EXTRA_LOGGERS: gazette
+      # webhook Discord ou Slack de l'équipe : à mettre dans .env (jamais dans le dépôt)
+      GAZETTE_ALERTE_WEBHOOK: ${GAZETTE_ALERTE_WEBHOOK:-}
     volumes:
       - ./articles_bruts:/data/articles_bruts
+      - ./rapports:/data/rapports
     depends_on:
       db:
         condition: service_healthy

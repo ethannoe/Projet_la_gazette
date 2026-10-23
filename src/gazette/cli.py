@@ -2,15 +2,21 @@
 
 migrer               applique les migrations en attente
 collecter            un passage tout de suite (--source pour en viser une)
-planifier            un passage toutes les GAZETTE_INTERVALLE_MIN minutes, via Prefect
+nettoyer             brut → articles_propres / rejets, puis rapport du jour
+rejouer REGLE        après avoir modifié une règle : repasse ses rejets dans les règles
+controler            contrôles de qualité sur les vraies données, alerte si un fait est faux
+rapport              réécrit le rapport de qualité (--jour AAAA-MM-JJ)
+purger               applique la rétention (docs/donnees.md)
+tracer ID|LIEN       d'un article, retrouver son sort, sa source et son item brut
+planifier            tout ça toutes les GAZETTE_INTERVALLE_MIN minutes, via Prefect
 etat                 état de chaque source : dernière réussite, échecs, sommeils, articles
 reveiller SOURCE     sort une source du sommeil
 """
 
 import argparse
-from datetime import timedelta
+from datetime import date, timedelta
 
-from gazette import config, db, journal
+from gazette import config, db, journal, pipeline
 from gazette.collecteur import collect_all
 from gazette.sources import load_sources
 from gazette.stockage import count_items
@@ -22,6 +28,15 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("migrer", help="applique les migrations en attente")
     collecter = commands.add_parser("collecter", help="un passage tout de suite")
     collecter.add_argument("--source", action="append", help="id de sources.csv (répétable)")
+    commands.add_parser("nettoyer", help="brut → articles_propres / rejets, puis rapport")
+    rejouer = commands.add_parser("rejouer", help="repasse les rejets d'une règle modifiée")
+    rejouer.add_argument("regle", help="ex. R07_media_seul")
+    commands.add_parser("controler", help="contrôles de qualité et alerte")
+    rapport = commands.add_parser("rapport", help="réécrit le rapport de qualité")
+    rapport.add_argument("--jour", type=date.fromisoformat, help="AAAA-MM-JJ (UTC)")
+    commands.add_parser("purger", help="applique la rétention")
+    tracer = commands.add_parser("tracer", help="sort, source et item brut d'un article")
+    tracer.add_argument("cle", metavar="ID|LIEN")
     commands.add_parser("planifier", help="collecte planifiée par Prefect")
     commands.add_parser("etat", help="état de chaque source")
     reveiller = commands.add_parser("reveiller", help="sort une source du sommeil")
@@ -50,6 +65,36 @@ def main(argv: list[str] | None = None) -> int:
                 delai=timedelta(minutes=cfg.delai_min),
             )
             return 1 if bilans and all(b.statut == "echec" for b in bilans) else 0
+        elif args.commande == "nettoyer":
+            bilan = pipeline.nettoyer(conn, cfg)
+            path, _ = pipeline.rapporter(conn, cfg, bilan)
+            print(f"{bilan.gardes} gardés, {bilan.rejetes} rejetés ; rapport : {path}")
+        elif args.commande == "rejouer":
+            oublies = db.forget_rejections(conn, args.regle)
+            bilan = pipeline.nettoyer(conn, cfg)
+            path, _ = pipeline.rapporter(conn, cfg, bilan)
+            print(
+                f"{oublies} rejets {args.regle} repassés : {bilan.gardes} gardés, "
+                f"{bilan.rejetes} rejetés à nouveau ; rapport : {path}"
+            )
+        elif args.commande == "controler":
+            resultats = pipeline.controler(conn, cfg)
+            pipeline.rapporter(conn, cfg)
+            return 0 if all(r.ok for r in resultats) else 1
+        elif args.commande == "rapport":
+            path, contenu = pipeline.rapporter(conn, cfg, jour=args.jour)
+            print(contenu)
+            print(f"(écrit dans {path})")
+        elif args.commande == "purger":
+            print(pipeline.retenir(conn, cfg))
+        elif args.commande == "tracer":
+            trace = pipeline.tracer(conn, cfg, args.cle)
+            if trace is None:
+                print(f"aucun article {args.cle!r} dans articles_propres ni dans rejets")
+                return 1
+            for cle, valeur in trace.items():
+                if valeur is not None:
+                    print(f"{cle:10} {valeur}")
         elif args.commande == "etat":
             db.migrate(conn)
             en_service = {s.id for s in load_sources(cfg.sources_file)}
