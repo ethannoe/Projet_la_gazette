@@ -4,4 +4,6 @@
 set -eu
 cd "$(dirname "$0")/.."
 
+mkdir -p modeles
+export LOCAL_USER="$(id -u):$(id -g)"
 docker compose run --rm --build test

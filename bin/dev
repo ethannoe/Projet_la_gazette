@@ -6,13 +6,18 @@
 set -eu
 cd "$(dirname "$0")/.."
 
-mkdir -p articles_bruts rapports
+mkdir -p articles_bruts rapports modeles runs
 export LOCAL_USER="$(id -u):$(id -g)"
+# le commit d'où vient l'image, tracé dans chaque run ; « -modifie » si le code n'est pas commité
+GIT_SHA="$(git rev-parse --short HEAD 2>/dev/null || echo dev)"
+[ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ] && GIT_SHA="$GIT_SHA-modifie"
+export GIT_SHA
 
 docker compose up --build --detach db prefect collecteur
 docker compose run --rm collecteur collecter "$@" || true  # une source en échec n'est pas une erreur ici
 docker compose run --rm collecteur nettoyer
 docker compose run --rm collecteur controler || true  # un contrôle en échec est signalé, pas bloquant
+docker compose run --rm collecteur themes  # un run de regroupement tracé (le 1er télécharge le modèle)
 docker compose run --rm collecteur etat
 
 echo

@@ -40,6 +40,8 @@ jobs:
           --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql://gazette:gazette@localhost:5432/gazette
+      GAZETTE_TEST_MODELE: "1"  # le vrai modèle d'embeddings (220 Mo, téléchargé à chaque fois)
+      GAZETTE_MODELES_DIR: /tmp/modeles
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -78,6 +80,7 @@ jobs:
         with:
           context: .
           target: runtime
+          build-args: GIT_SHA=${{ github.sha }}
           push: ${{ env.PUSH == 'true' }}
           tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
           labels: |

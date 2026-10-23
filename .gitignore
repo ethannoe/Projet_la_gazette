@@ -19,3 +19,5 @@ build/
 # Données produites par le pipeline : jamais dans le dépôt
 articles_bruts/
 rapports/
+runs/
+modeles/

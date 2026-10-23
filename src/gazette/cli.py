@@ -7,6 +7,9 @@ rejouer REGLE        après avoir modifié une règle : repasse ses rejets dans 
 controler            contrôles de qualité sur les vraies données, alerte si un fait est faux
 rapport              réécrit le rapport de qualité (--jour AAAA-MM-JJ)
 purger               applique la rétention (docs/donnees.md)
+themes               un run de regroupement tout de suite (--fin pour rejouer une fenêtre passée)
+runs                 les derniers runs : données, paramètres, métriques
+themes-du-jour       les thèmes du dernier run réussi
 tracer ID|LIEN       d'un article, retrouver son sort, sa source et son item brut
 planifier            tout ça toutes les GAZETTE_INTERVALLE_MIN minutes, via Prefect
 etat                 état de chaque source : dernière réussite, échecs, sommeils, articles
@@ -14,7 +17,7 @@ reveiller SOURCE     sort une source du sommeil
 """
 
 import argparse
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from gazette import config, db, journal, pipeline
 from gazette.collecteur import collect_all
@@ -35,6 +38,15 @@ def main(argv: list[str] | None = None) -> int:
     rapport = commands.add_parser("rapport", help="réécrit le rapport de qualité")
     rapport.add_argument("--jour", type=date.fromisoformat, help="AAAA-MM-JJ (UTC)")
     commands.add_parser("purger", help="applique la rétention")
+    themes = commands.add_parser("themes", help="un run de regroupement tracé")
+    themes.add_argument(
+        "--fin",
+        type=datetime.fromisoformat,
+        help="fin de la fenêtre (ISO 8601) pour rejouer un run",
+    )
+    runs = commands.add_parser("runs", help="les derniers runs")
+    runs.add_argument("-n", type=int, default=10)
+    commands.add_parser("themes-du-jour", help="les thèmes du dernier run réussi")
     tracer = commands.add_parser("tracer", help="sort, source et item brut d'un article")
     tracer.add_argument("cle", metavar="ID|LIEN")
     commands.add_parser("planifier", help="collecte planifiée par Prefect")
@@ -85,6 +97,18 @@ def main(argv: list[str] | None = None) -> int:
             path, contenu = pipeline.rapporter(conn, cfg, jour=args.jour)
             print(contenu)
             print(f"(écrit dans {path})")
+        elif args.commande == "themes":
+            fin = args.fin.astimezone(UTC) if args.fin and args.fin.tzinfo else args.fin
+            if fin is not None and fin.tzinfo is None:
+                fin = fin.replace(tzinfo=UTC)
+            run = pipeline.regrouper(conn, cfg, declencheur="manuel", fin=fin)
+            print(f"run {run.run_id} : {run.metriques}")
+            for theme in run.themes:
+                print(f"  {theme['numero']:2} [{theme['taille']:2}] {theme['nom']}")
+        elif args.commande == "runs":
+            print_runs(conn, args.n)
+        elif args.commande == "themes-du-jour":
+            print_themes_du_jour(conn)
         elif args.commande == "purger":
             print(pipeline.retenir(conn, cfg))
         elif args.commande == "tracer":
@@ -136,3 +160,34 @@ def _etat(row: dict, en_service: set[str] | None) -> str:
     if en_service is not None and row["id"] not in en_service:
         return "retirée"
     return "actif" if row["actif"] else "SOMMEIL"
+
+
+def print_runs(conn, n: int) -> None:
+    rows = conn.execute(
+        "SELECT run_id, statut, declencheur, nb_articles, hash_entree, modele_version,"
+        " hash_parametres, code_version, metriques FROM runs ORDER BY debut DESC LIMIT %s",
+        (n,),
+    ).fetchall()
+    for run_id, statut, declencheur, nb, entree, version, params, code, m in rows:
+        m = m or {}
+        print(
+            f"{run_id}  {statut:8} {declencheur:8} {nb:4} articles  entrée {entree}"
+            f"  modèle @{version[:8]}  params {params}  code {code}"
+        )
+        if m:
+            print(
+                f"    {m.get('nb_themes')} thèmes, médiane {m.get('taille_mediane')},"
+                f" bruit {m.get('part_bruit')}, silhouette {m.get('silhouette')}"
+            )
+
+
+def print_themes_du_jour(conn) -> None:
+    rows = conn.execute(
+        "SELECT run_id, numero, nom, taille, mots_cles FROM themes_du_jour ORDER BY numero"
+    ).fetchall()
+    if not rows:
+        print("aucun run réussi pour l'instant")
+        return
+    print(f"thèmes du run {rows[0][0]} :")
+    for _, numero, nom, taille, mots in rows:
+        print(f"  {numero:2} [{taille:2}] {nom:40} {', '.join(mots[3:])}")

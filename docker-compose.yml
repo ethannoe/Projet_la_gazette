@@ -38,12 +38,14 @@ services:
       retries: 20
     restart: unless-stopped
 
-  # Le pipeline planifié : collecte, nettoyage, contrôles et rapport,
+  # Le pipeline planifié : collecte, nettoyage, contrôles, rapport et thèmes,
   # toutes les GAZETTE_INTERVALLE_MIN minutes
   collecteur:
     build:
       context: .
       target: runtime
+      args:
+        GIT_SHA: ${GIT_SHA:-dev}  # bin/dev passe le commit courant
     image: la-gazette:dev
     command: ["planifier"]
     # bin/dev passe l'utilisateur courant pour que articles_bruts/ reste à nous (Linux)
@@ -59,6 +61,8 @@ services:
     volumes:
       - ./articles_bruts:/data/articles_bruts
       - ./rapports:/data/rapports
+      - ./modeles:/data/modeles      # le modèle d'embeddings, téléchargé une fois
+      - ./runs:/data/runs            # les artefacts de chaque run de regroupement
     depends_on:
       db:
         condition: service_healthy
@@ -73,8 +77,13 @@ services:
       context: .
       target: test
     image: la-gazette:test
+    user: "${LOCAL_USER:-10001:10001}"
     environment:
       DATABASE_URL: *database-url
+      GAZETTE_TEST_MODELE: "1"         # teste aussi le vrai modèle d'embeddings
+      GAZETTE_MODELES_DIR: /data/modeles
+    volumes:
+      - ./modeles:/data/modeles
     depends_on:
       db:
         condition: service_healthy

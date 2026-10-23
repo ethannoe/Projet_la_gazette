@@ -1,6 +1,6 @@
-"""Orchestration Prefect : un passage toutes les N minutes, en cinq tâches.
+"""Orchestration Prefect : un passage toutes les N minutes, en six tâches.
 
-collecte → nettoyage → contrôles de qualité → rapport → rétention
+collecte → nettoyage → contrôles de qualité → rapport → thèmes (une fois par jour) → rétention
 
 `planifier()` enregistre le déploiement auprès du serveur Prefect (PREFECT_API_URL)
 puis exécute lui-même les passages prévus. L'historique, les journaux, les métriques
@@ -55,6 +55,32 @@ def tache_rapport(cfg: Config, bilan: BilanNettoyage) -> str:
     return str(path)
 
 
+@task(name="themes", cache_policy=NO_CACHE)
+def tache_themes(cfg: Config) -> str | None:
+    """Le regroupement du jour, tracé dans la table runs ; ne tourne qu'une fois par jour."""
+    with db.connect(cfg.database_url) as conn:
+        run = pipeline.regrouper(conn, cfg, declencheur="pipeline")
+    if run is None:
+        return None
+    lignes = [
+        f"# Thèmes du run {run.run_id}",
+        "",
+        f"{run.nb_articles} articles, {run.metriques['nb_themes']} thèmes, "
+        f"{run.metriques['part_bruit']:.0%} de bruit, silhouette {run.metriques['silhouette']}",
+        "",
+        "| # | Thème | Articles | Mots-clés |",
+        "|---|---|---|---|",
+        *(
+            f"| {t['numero']} | {t['nom']} | {t['taille']} | {', '.join(t['mots_cles'])} |"
+            for t in run.themes
+        ),
+    ]
+    create_markdown_artifact(
+        key="themes-du-jour", markdown="\n".join(lignes), description=run.run_id
+    )
+    return run.run_id
+
+
 @task(name="retention", cache_policy=NO_CACHE)
 def tache_retention(cfg: Config) -> dict:
     with db.connect(cfg.database_url) as conn:
@@ -71,6 +97,7 @@ def collecte() -> dict:
     nettoyage = tache_nettoyage(cfg)
     controles = tache_controles(cfg)
     rapport = tache_rapport(cfg, nettoyage)
+    run_themes = tache_themes(cfg)
     tache_retention(cfg)
     return {
         "sources": len(bilans),
@@ -80,6 +107,7 @@ def collecte() -> dict:
         "rejetes": nettoyage.rejetes,
         "controles_en_echec": [r.controle for r in controles if not r.ok],
         "rapport": rapport,
+        "run_themes": run_themes,
     }
 
 
@@ -87,7 +115,7 @@ def planifier(intervalle_min: int) -> None:
     collecte.serve(
         name="planifiee",
         interval=timedelta(minutes=intervalle_min),
-        description="Collecte, nettoyage, contrôles de qualité et rapport",
+        description="Collecte, nettoyage, contrôles de qualité, rapport et thèmes du jour",
         # Un seul passage à la fois. Au réveil d'une machine en veille, les passages
         # manqués s'enchaînent, mais le délai minimal par source (GAZETTE_DELAI_MIN) les
         # rend vides : les éditeurs ne voient qu'une requête. Pas de limite globale côté
