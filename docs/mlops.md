@@ -218,13 +218,3 @@ venaient tous du cache : il a pris 0,2 s. C'est ce run que montre la vue `themes
   et un prénom fréquent dans 3 articles sort en tête.
 - Les mots vides ne couvrent pas les adverbes.
 
-### Journée 2 : à relire
-
-*(Relire les thèmes du prochain run quotidien avec `themes-du-jour`, et noter ici ce qui est
-bon, ce qui est absurde, et une hypothèse.)*
-
-### La question du TD 6
-
-Qu'est-ce qu'un « bon » regroupement ? Silhouette, part de bruit, cohérence lue à la main,
-nombre de sources par thème… Les métriques de chaque run sont dans la table `runs`, pour
-comparer.
