@@ -14,12 +14,19 @@ tracer ID|LIEN       d'un article, retrouver son sort, sa source et son item bru
 planifier            tout ça toutes les GAZETTE_INTERVALLE_MIN minutes, via Prefect
 etat                 état de chaque source : dernière réussite, échecs, sommeils, articles
 reveiller SOURCE     sort une source du sommeil
+versions             registre et version en production
+relire RUN           enregistre la relecture humaine d'un échantillon
+promouvoir VERSION   promeut une version candidate
+retour-arriere       revient à la version précédente
+evaluer-candidat     évalue config/clustering.yaml sur la journée précédente (CI)
+promouvoir-candidat  promeut le candidat relu qui correspond à la configuration actuelle
 """
 
 import argparse
+import sys
 from datetime import UTC, date, datetime, timedelta
 
-from gazette import config, db, journal, pipeline
+from gazette import config, db, evaluation, journal, pipeline, themes
 from gazette.collecteur import collect_all
 from gazette.sources import load_sources
 from gazette.stockage import count_items
@@ -38,8 +45,8 @@ def main(argv: list[str] | None = None) -> int:
     rapport = commands.add_parser("rapport", help="réécrit le rapport de qualité")
     rapport.add_argument("--jour", type=date.fromisoformat, help="AAAA-MM-JJ (UTC)")
     commands.add_parser("purger", help="applique la rétention")
-    themes = commands.add_parser("themes", help="un run de regroupement tracé")
-    themes.add_argument(
+    themes_cmd = commands.add_parser("themes", help="un run de regroupement tracé")
+    themes_cmd.add_argument(
         "--fin",
         type=datetime.fromisoformat,
         help="fin de la fenêtre (ISO 8601) pour rejouer un run",
@@ -53,6 +60,23 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("etat", help="état de chaque source")
     reveiller = commands.add_parser("reveiller", help="sort une source du sommeil")
     reveiller.add_argument("source")
+    commands.add_parser("versions", help="registre des versions et version en production")
+    relire = commands.add_parser("relire", help="enregistre la relecture humaine d'un échantillon")
+    relire.add_argument("run_id")
+    relire.add_argument("decision", choices=("approuve", "recale"))
+    relire.add_argument("--par", required=True, dest="par_qui")
+    relire.add_argument("--commentaire", required=True)
+    promouvoir = commands.add_parser("promouvoir", help="promouvoir une version candidate")
+    promouvoir.add_argument("version")
+    promouvoir.add_argument("--par", required=True, dest="par_qui")
+    rollback = commands.add_parser("retour-arriere", help="revenir à la version précédente")
+    rollback.add_argument("--par", required=True, dest="par_qui")
+    commands.add_parser("evaluer-candidat", help="évalue la configuration candidate sur 24 h")
+    promouvoir_ci = commands.add_parser(
+        "promouvoir-candidat", help="promotion CI de la configuration candidate évaluée et relue"
+    )
+    promouvoir_ci.add_argument("--par", required=True, dest="par_qui")
+    promouvoir_ci.add_argument("--code-version", required=True)
     args = parser.parse_args(argv)
 
     journal.configure()
@@ -65,6 +89,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     with db.connect(cfg.database_url) as conn:
+        if args.commande in {
+            "versions", "relire", "promouvoir", "retour-arriere", "promouvoir-candidat"
+        }:
+            db.migrate(conn)
+        if args.commande == "versions":
+            initial = themes.charger_config(cfg.clustering_file)
+            db.ensure_production_version(
+                conn, initial.valeurs, cfg.code_version, initial.empreinte
+            )
         if args.commande == "migrer":
             applied = db.migrate(conn)
             print("migrations appliquées :", ", ".join(applied) or "aucune, la base est à jour")
@@ -102,7 +135,11 @@ def main(argv: list[str] | None = None) -> int:
             if fin is not None and fin.tzinfo is None:
                 fin = fin.replace(tzinfo=UTC)
             run = pipeline.regrouper(conn, cfg, declencheur="manuel", fin=fin)
+            if run is None:
+                print("aucun run créé")
+                return 0
             print(f"run {run.run_id} : {run.metriques}")
+            print(f"évaluation : {run.verdict}")
             for theme in run.themes:
                 print(f"  {theme['numero']:2} [{theme['taille']:2}] {theme['nom']}")
         elif args.commande == "runs":
@@ -128,12 +165,38 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"source inconnue : {args.source}")
                 return 1
             print(f"{args.source} réveillée : elle sera collectée au prochain passage")
+        elif args.commande == "versions":
+            print_versions(conn)
+        elif args.commande == "relire":
+            verdict = evaluation.enregistrer_relecture(
+                conn, args.run_id, args.decision, args.commentaire, args.par_qui
+            )
+            print(f"run {args.run_id} : verdict {verdict}")
+        elif args.commande == "promouvoir":
+            print("version en production :", db.promouvoir(conn, args.version, args.par_qui))
+        elif args.commande == "retour-arriere":
+            precedente = db.version_precedente(conn)
+            print("retour arrière vers :", db.promouvoir(
+                conn, precedente, args.par_qui, action="retour_arriere"
+            ))
+        elif args.commande == "evaluer-candidat":
+            run = pipeline.evaluer_candidat(conn, cfg)
+            print(run.run_id)
+            print(f"verdict={run.verdict}; métriques={run.metriques}", file=sys.stderr)
+        elif args.commande == "promouvoir-candidat":
+            candidate = themes.charger_config(cfg.clustering_file)
+            version = db.promouvoir_candidat(
+                conn, candidate.empreinte, args.code_version, args.par_qui
+            )
+            print("version en production :", version)
     return 0
 
 
 def print_report(rows: list[dict], articles_dir: str, en_service: set[str] | None = None) -> None:
     """Une ligne par source ; celles retirées de sources.csv restent, avec leur historique."""
-    header = ("source", "état", "dernière réussite", "échecs", "passages", "sommeils", "articles")
+    header = (
+        "source", "état", "dernière réussite", "échecs", "passages", "sommeils", "articles"
+    )
     lines = [header]
     for r in rows:
         reussite = r["derniere_reussite"]
@@ -164,14 +227,15 @@ def _etat(row: dict, en_service: set[str] | None) -> str:
 
 def print_runs(conn, n: int) -> None:
     rows = conn.execute(
-        "SELECT run_id, statut, declencheur, nb_articles, hash_entree, modele_version,"
+        "SELECT run_id, statut, verdict, declencheur, nb_articles, hash_entree, modele_version,"
         " hash_parametres, code_version, metriques FROM runs ORDER BY debut DESC LIMIT %s",
         (n,),
     ).fetchall()
-    for run_id, statut, declencheur, nb, entree, version, params, code, m in rows:
+    for run_id, statut, verdict, declencheur, nb, entree, version, params, code, m in rows:
         m = m or {}
         print(
-            f"{run_id}  {statut:8} {declencheur:8} {nb:4} articles  entrée {entree}"
+            f"{run_id}  {statut:8} {verdict or '-':8} {declencheur:8} "
+            f"{nb:4} articles  entrée {entree}"
             f"  modèle @{version[:8]}  params {params}  code {code}"
         )
         if m:
@@ -191,3 +255,13 @@ def print_themes_du_jour(conn) -> None:
     print(f"thèmes du run {rows[0][0]} :")
     for _, numero, nom, taille, mots in rows:
         print(f"  {numero:2} [{taille:2}] {nom:40} {', '.join(mots[3:])}")
+
+
+def print_versions(conn) -> None:
+    rows = conn.execute(
+        "SELECT version, statut, run_id, hash_parametres, promue_le, par_qui"
+        " FROM versions_modele ORDER BY (statut='production') DESC, creee_le DESC"
+    ).fetchall()
+    for version, statut, run_id, empreinte, promue, par_qui in rows:
+        print(f"{statut:10} {version}  run={run_id or '-'}  paramètres={empreinte}  "
+              f"promue={promue or '-'} par={par_qui}")

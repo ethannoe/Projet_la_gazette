@@ -10,6 +10,7 @@ def test_migrations_appliquees_une_seule_fois(conn):
         "003_articles_propres",
         "004_controles",
         "005_themes",
+        "006_evaluation_registre",
     ]
     assert db.migrate(conn) == toutes
     assert db.migrate(conn) == []

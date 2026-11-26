@@ -3,12 +3,14 @@
 Les mêmes étapes servent à la ligne de commande et aux tâches Prefect (flows.py).
 """
 
+import json
 from datetime import UTC, date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import psycopg
 
-from gazette import controles, nettoyage, rapport, regles, retention, themes
+from gazette import controles, db, evaluation, nettoyage, rapport, regles, retention, themes
 from gazette.config import Config
 from gazette.embeddings import EncodeurFastembed
 from gazette.sources import load_sources
@@ -47,7 +49,15 @@ def regrouper(
     fin: datetime | None = None,
 ) -> themes.Run | None:
     """Un run de regroupement tracé. Lancé par le pipeline, il ne tourne qu'une fois par jour."""
-    config_themes = themes.charger_config(cfg.clustering_file)
+    db.migrate(conn)
+    initial = themes.charger_config(cfg.clustering_file)
+    db.ensure_production_version(conn, initial.valeurs, cfg.code_version, initial.empreinte)
+    production = db.production_version(conn)
+    config_themes = themes.ConfigThemes(
+        json.dumps(production["configuration"], ensure_ascii=False, sort_keys=True),
+        production["configuration"],
+        production["hash_parametres"],
+    )
     if declencheur == "pipeline" and not themes.run_du_jour_attendu(
         conn, config_themes, datetime.now(UTC)
     ):
@@ -62,6 +72,34 @@ def regrouper(
         runs_dir=cfg.runs_dir,
         code_version=cfg.code_version,
         racine=Path(cfg.clustering_file).resolve().parents[1],
+        evaluation_config=evaluation.charger(
+            Path(cfg.clustering_file).resolve().parent / "evaluation.yaml"
+        ),
+    )
+
+
+def evaluer_candidat(conn: psycopg.Connection, cfg: Config) -> themes.Run:
+    """Évalue la configuration de la PR sur la journée précédente, dans son fuseau prévu."""
+    db.migrate(conn)
+    candidate = themes.charger_config(cfg.clustering_file)
+    encodeur = EncodeurFastembed(candidate["embeddings"]["modele"], cfg.modeles_dir)
+    fuseau = ZoneInfo(candidate["planification"]["fuseau"])
+    maintenant = datetime.now(fuseau)
+    fin_jour_precedent = maintenant.replace(
+        hour=0, minute=0, second=0, microsecond=0
+    ).astimezone(UTC)
+    return themes.executer(
+        conn,
+        candidate,
+        encodeur,
+        fin=fin_jour_precedent,
+        declencheur="ci",
+        runs_dir=cfg.runs_dir,
+        code_version=cfg.code_version,
+        racine=Path(cfg.clustering_file).resolve().parents[1],
+        evaluation_config=evaluation.charger(
+            Path(cfg.clustering_file).resolve().parent / "evaluation.yaml"
+        ),
     )
 
 

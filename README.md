@@ -20,6 +20,9 @@ Où on en est (TD 5), toutes les 30 min :
 - **thèmes** (une fois par jour, après 6 h 30) : les articles propres des dernières 24 h sont
   vectorisés, regroupés (HDBSCAN) et nommés par leurs mots-clés. Chaque run est tracé
   (données, paramètres, métriques, artefacts) : voir [docs/mlops.md](docs/mlops.md).
+- **évaluation et registre** : seuils et dérive vérifiés à chaque run, échantillon relu,
+  version de production lue depuis PostgreSQL ; promotion CI et retour arrière tracés
+  ([fiche modèle](docs/fiche-modele.md)).
 
 ## Lancer le projet
 
@@ -52,6 +55,9 @@ Une source `SOMMEIL` a échoué 3 fois de suite et n'est plus interrogée ; une 
   [docs/qualite.md](docs/qualite.md)).
 - Les thèmes du jour : `docker compose run --rm collecteur themes-du-jour` ; les runs :
   `docker compose run --rm collecteur runs`.
+- Le registre : `docker compose run --rm collecteur versions`. Après relecture de
+  `runs/<run_id>/evaluation.json`, enregistrer le résultat avec `relire`.
+- Le retour arrière : `docker compose run --rm collecteur retour-arriere --par "Prénom Nom"`.
 - Pour brancher l'alerte sur le Discord ou le Slack de l'équipe, mettre
   `GAZETTE_ALERTE_WEBHOOK=…` dans un fichier `.env` (voir [docs/orchestration.md](docs/orchestration.md)).
 - L'interface Prefect, avec l'historique des passages, est sur http://localhost:4200.
@@ -98,7 +104,8 @@ src/gazette/          le code (python -m gazette <commande>)
   rapport.py            rapport de qualité du jour
   retention.py          purge selon les durées de conservation
   embeddings.py         titre + extrait → vecteur (fastembed), cache en base
-  themes.py             regroupement HDBSCAN, nommage, runs tracés
+  themes.py             regroupement HDBSCAN, nommage, runs évalués et tracés
+  evaluation.py         seuils, dérive, échantillon et relecture humaine
   db.py                 PostgreSQL : migrations, tables sources, collectes
   migrations/           migrations SQL versionnées
 tests/                tests pytest et flux enregistrés (fixtures/)
@@ -109,14 +116,14 @@ Dockerfile            multi-étapes : builder → test → runtime (non root)
 docker-compose.yml    PostgreSQL, Prefect, pipeline planifié, tests
 sources.csv           les 9 flux retenus
 regles.toml           motifs et seuils des règles d'exclusion
-config/               paramètres du regroupement (clustering.yaml) et mots vides
+config/               paramètres du regroupement, seuils d'évaluation, mots vides
 ```
 
 ## Intégration continue
 
 Chaque push sur `main` lance [la CI](.github/workflows/ci.yml) : lint → tests → build de l'image
-→ publication sur `ghcr.io/ethannoe/projet_la_gazette:<AAAAMMJJHHMMSS>-<sha>`. Sur une pull request,
-les mêmes étapes tournent, mais l'image n'est pas publiée. La stratégie est détaillée dans
+→ publication → promotion du candidat évalué et relu. Sur une pull request interne, la CI évalue
+aussi les paramètres sur les données de la veille. La stratégie est détaillée dans
 [docs/ci-cd.md](docs/ci-cd.md).
 
 ## Contribuer

@@ -5,6 +5,7 @@ from datetime import datetime
 from importlib.resources import files
 
 import psycopg
+from psycopg.types.json import Jsonb
 
 from gazette.sources import Source
 
@@ -189,3 +190,136 @@ def report(conn: psycopg.Connection) -> list[dict]:
 def forget_rejections(conn: psycopg.Connection, regle: str) -> int:
     """Oublie les rejets d'une règle : le prochain nettoyage les repassera dans les règles."""
     return conn.execute("DELETE FROM rejets WHERE regle = %s", (regle,)).rowcount
+
+
+def ensure_production_version(
+    conn: psycopg.Connection,
+    configuration: dict,
+    par_qui: str,
+    empreinte: str,
+) -> None:
+    """Initialise le registre une seule fois ; ensuite sa ligne production est la référence."""
+    with conn.transaction():
+        exists = conn.execute(
+            "SELECT 1 FROM versions_modele WHERE statut = 'production'"
+        ).fetchone()
+        if exists:
+            return
+        version = f"initial-{empreinte}"
+        conn.execute(
+            "INSERT INTO versions_modele (version, statut, configuration, hash_parametres,"
+            " promue_le, par_qui) VALUES (%s, 'production', %s, %s, now(), %s)"
+            " ON CONFLICT (version) DO NOTHING",
+            (version, Jsonb(configuration), empreinte, par_qui),
+        )
+        conn.execute(
+            "INSERT INTO historique_promotions (version, action, par_qui)"
+            " VALUES (%s, 'initialisation', %s) ON CONFLICT DO NOTHING",
+            (version, par_qui),
+        )
+
+
+def production_version(conn: psycopg.Connection) -> dict | None:
+    row = conn.execute(
+        "SELECT version, run_id, configuration, hash_parametres, promue_le, par_qui"
+        " FROM versions_modele WHERE statut = 'production'"
+    ).fetchone()
+    if row is None:
+        return None
+    cols = ("version", "run_id", "configuration", "hash_parametres", "promue_le", "par_qui")
+    return dict(zip(cols, row, strict=True))
+
+
+def promouvoir(
+    conn: psycopg.Connection,
+    version: str,
+    par_qui: str,
+    *,
+    action: str = "promotion",
+) -> str:
+    """Bascule atomiquement la production et garde la trace de l'ancienne version."""
+    with conn.transaction():
+        conn.execute("SELECT pg_advisory_xact_lock(%s)", (_VERROU_MIGRATIONS + 1,))
+        candidate = conn.execute(
+            "SELECT statut, run_id FROM versions_modele WHERE version = %s FOR UPDATE", (version,)
+        ).fetchone()
+        if candidate is None:
+            raise ValueError(f"version inconnue : {version}")
+        if candidate[0] == "candidate" and candidate[1]:
+            verdict, statut, decision = conn.execute(
+                "SELECT r.verdict, r.statut, m.decision FROM runs r"
+                " LEFT JOIN relectures_modeles m USING (run_id) WHERE r.run_id=%s",
+                (candidate[1],),
+            ).fetchone()
+            if statut != "ok":
+                raise ValueError(f"run non terminé avec succès : {candidate[1]}")
+            if verdict != "candidat" or decision != "approuve":
+                raise ValueError(f"relecture humaine requise avant promotion : {version}")
+        statuts_permis = (
+            ("candidate", "production")
+            if action == "promotion"
+            else ("candidate", "archivee", "production")
+        )
+        if candidate[0] not in statuts_permis:
+            raise ValueError(f"version non promouvable : {version} ({candidate[0]})")
+        actuelle = conn.execute(
+            "SELECT version FROM versions_modele WHERE statut = 'production' FOR UPDATE"
+        ).fetchone()
+        precedente = actuelle[0] if actuelle else None
+        if precedente == version:
+            return version
+        if precedente:
+            conn.execute(
+                "UPDATE versions_modele SET statut = 'archivee' WHERE version = %s", (precedente,)
+            )
+        conn.execute(
+            "UPDATE versions_modele SET statut = 'production', promue_le = now(), par_qui = %s"
+            " WHERE version = %s", (par_qui, version)
+        )
+        conn.execute(
+            "INSERT INTO historique_promotions (version, action, precedente, par_qui)"
+            " VALUES (%s, %s, %s, %s)", (version, action, precedente, par_qui)
+        )
+    return version
+
+
+def version_precedente(conn: psycopg.Connection) -> str:
+    row = conn.execute(
+        "SELECT precedente FROM historique_promotions"
+        " WHERE action IN ('promotion', 'retour_arriere')"
+        " AND precedente IS NOT NULL ORDER BY faite_le DESC, id DESC LIMIT 1"
+    ).fetchone()
+    if row is None:
+        raise ValueError("aucune version précédente dans l'historique")
+    return row[0]
+
+
+def promouvoir_candidat(
+    conn: psycopg.Connection,
+    empreinte: str,
+    code_version: str,
+    par_qui: str,
+) -> str:
+    """Promouvoit le candidat validé par relecture pour cette configuration exacte."""
+    row = conn.execute(
+        "SELECT v.version FROM versions_modele v JOIN runs r ON r.run_id=v.run_id"
+        " WHERE v.hash_parametres=%s AND r.code_version=%s AND r.declencheur='ci'"
+        " ORDER BY v.creee_le DESC, r.debut DESC, v.version DESC LIMIT 1",
+        (empreinte, code_version),
+    ).fetchone()
+    if row is None:
+        raise ValueError(
+            "aucun candidat évalué et relu pour ces paramètres ; vérifier l'artifact CI"
+        )
+    statut, run_verdict, run_status = conn.execute(
+        "SELECT v.statut, r.verdict, r.statut"
+        " FROM versions_modele v JOIN runs r ON r.run_id=v.run_id"
+        " WHERE v.version=%s", (row[0],)
+    ).fetchone()
+    if statut != "candidate":
+        raise ValueError("la dernière évaluation CI de ces paramètres n'est pas promouvable")
+    if run_verdict != "candidat":
+        raise ValueError("le dernier run CI n'a pas reçu une relecture humaine favorable")
+    if run_status != "ok":
+        raise ValueError("le dernier run CI ne s'est pas terminé correctement")
+    return promouvoir(conn, row[0], par_qui)

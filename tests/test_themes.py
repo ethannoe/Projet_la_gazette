@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 from gazette import db
+from gazette.evaluation import enregistrer_relecture
 from gazette.sources import Source
 from gazette.themes import (
     _renumeroter,
@@ -239,6 +240,70 @@ def test_un_run_en_echec_est_trace(conn, tmp_path):
     assert statut == "echec"
     assert "modèle introuvable" in erreur
     assert conn.execute("SELECT count(*) FROM themes_du_jour").fetchone()[0] == 0
+
+
+def test_evaluation_recale_sans_remplacer_les_themes(conn, tmp_path):
+    preparer(conn)
+    reference = lancer(conn, tmp_path)
+    config_evaluation = {
+        "seuils": {"silhouette_min": 1.1, "part_bruit_max": 0.8,
+                   "part_theme_geant_max": 0.5, "themes_min": 1},
+        "echantillon": {"taille": 10},
+        "derive": {"jours_consecutifs": 2, "hausse_bruit": 0.15, "baisse_silhouette": 0.1},
+    }
+    rejet = executer(
+        conn, CONFIG, EncodeurParSujet(), fin=FIN + timedelta(minutes=1),
+        runs_dir=tmp_path / "runs", code_version="test", racine=RACINE,
+        evaluation_config=config_evaluation,
+    )
+    assert rejet.verdict == "recale"
+    assert conn.execute(
+        "SELECT count(*) FROM themes WHERE run_id=%s", (rejet.run_id,)
+    ).fetchone()[0] == 0
+    assert conn.execute("SELECT DISTINCT run_id FROM themes_du_jour").fetchone()[0] == (
+        reference.run_id
+    )
+
+
+def test_run_de_ci_ne_remplace_pas_les_themes_servis(conn, tmp_path):
+    preparer(conn)
+    reference = lancer(conn, tmp_path)
+    candidat = lancer(conn, tmp_path, declencheur="ci")
+    assert candidat.verdict == "candidat"
+    assert conn.execute(
+        "SELECT count(*) FROM themes WHERE run_id=%s", (candidat.run_id,)
+    ).fetchone()[0] == 0
+    assert conn.execute("SELECT DISTINCT run_id FROM themes_du_jour").fetchone()[0] == (
+        reference.run_id
+    )
+    db.ensure_production_version(conn, CONFIG.valeurs, "test", CONFIG.empreinte)
+    enregistrer_relecture(conn, candidat.run_id, "approuve", "Échantillon vérifié", "equipe")
+    assert db.promouvoir_candidat(conn, CONFIG.empreinte, "test", "CI") == candidat.run_id
+
+
+def test_registre_promotion_et_retour_arriere(conn, tmp_path):
+    preparer(conn)
+    premiere = lancer(conn, tmp_path)
+    assert premiere.verdict == "candidat"
+    assert len(premiere.evaluation["echantillon"]) == 10
+    assert enregistrer_relecture(
+        conn, premiere.run_id, "approuve", "Échantillon cohérent", "equipe"
+    ) == "candidat"
+    db.ensure_production_version(conn, CONFIG.valeurs, "test", CONFIG.empreinte)
+    db.promouvoir(conn, premiere.run_id, "test")
+    assert db.production_version(conn)["version"] == premiere.run_id
+
+    seconde = lancer(conn, tmp_path)
+    enregistrer_relecture(conn, seconde.run_id, "approuve", "Relecture faite", "equipe")
+    db.promouvoir(conn, seconde.run_id, "ci")
+    precedente = db.version_precedente(conn)
+    assert precedente == premiere.run_id
+    db.promouvoir(conn, precedente, "test", action="retour_arriere")
+    assert db.production_version(conn)["version"] == premiere.run_id
+    actuelle = db.version_precedente(conn)
+    assert actuelle == seconde.run_id
+    db.promouvoir(conn, actuelle, "test", action="retour_arriere")
+    assert db.production_version(conn)["version"] == seconde.run_id
 
 
 def test_un_run_par_jour_dans_le_pipeline(conn, tmp_path):

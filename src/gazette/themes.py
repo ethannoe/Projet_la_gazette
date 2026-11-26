@@ -25,7 +25,7 @@ from sklearn.cluster import HDBSCAN
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import silhouette_score
 
-from gazette import db
+from gazette import db, evaluation
 from gazette.embeddings import Encodeur, texte, vectoriser
 
 log = logging.getLogger("gazette.themes")
@@ -37,10 +37,11 @@ MOTIF_MOT = r"(?u)\b[^\W\d_][^\W\d_'’-]{2,}\b"  # au moins 3 lettres, sans chi
 class ConfigThemes:
     brut: str  # le fichier tel quel : c'est lui qu'on trace
     valeurs: dict
+    empreinte_registre: str | None = None
 
     @property
     def empreinte(self) -> str:
-        return hashlib.sha256(self.brut.encode()).hexdigest()[:16]
+        return self.empreinte_registre or hashlib.sha256(self.brut.encode()).hexdigest()[:16]
 
     def __getitem__(self, cle: str):
         return self.valeurs[cle]
@@ -59,6 +60,8 @@ class Run:
     metriques: dict = field(default_factory=dict)
     themes: list[dict] = field(default_factory=list)  # numero, nom, mots_cles, taille, titres
     artefacts: dict = field(default_factory=dict)
+    verdict: str | None = None
+    evaluation: dict = field(default_factory=dict)
 
 
 # --- les étapes, chacune testable seule -------------------------------------------------
@@ -188,6 +191,7 @@ def executer(
     runs_dir: str | Path = "runs",
     code_version: str = "inconnue",
     racine: str | Path = ".",
+    evaluation_config: dict | None = None,
 ) -> Run:
     db.migrate(conn)
     debut = datetime.now(UTC)
@@ -236,7 +240,31 @@ def executer(
             for a, e, p in zip(articles, etiquettes, probabilites, strict=True)
         }
         run.artefacts = _ecrire_artefacts(Path(runs_dir) / run.run_id, cfg, run, affectations)
-        _enregistrer(conn, run, articles, etiquettes, probabilites)
+        run.verdict, run.evaluation = evaluation.evaluer(
+            conn,
+            run.run_id,
+            run.metriques,
+            articles,
+            etiquettes,
+            evaluation_config
+            or evaluation.charger(Path(racine) / "config/evaluation.yaml"),
+        )
+        run.artefacts["evaluation"] = _ecrire_evaluation(
+            Path(runs_dir) / run.run_id, run.evaluation
+        )
+        if declencheur in ("ci", "manuel"):
+            statut_candidat = (
+                "candidate" if all(run.evaluation["controles"].values()) else "archivee"
+            )
+            _enregistrer_candidat(conn, run, cfg, statut_candidat, declencheur)
+        if run.verdict != "recale" and declencheur != "ci":
+            _enregistrer(conn, run, articles, etiquettes, probabilites)
+        else:
+            conn.execute(
+                "UPDATE runs SET statut='ok', duree_s=%s, metriques=%s, artefacts=%s"
+                " WHERE run_id=%s",
+                (run.metriques["duree_s"], Jsonb(run.metriques), Jsonb(run.artefacts), run.run_id),
+            )
     except Exception as exc:
         conn.execute(
             "UPDATE runs SET statut = 'echec', erreur = %s, duree_s = %s WHERE run_id = %s",
@@ -252,6 +280,24 @@ def executer(
         extra={"champs": {"evenement": "run_themes", "run_id": run.run_id, **run.metriques}},
     )
     return run
+
+
+def _enregistrer_candidat(
+    conn, run: Run, cfg: ConfigThemes, statut: str, declencheur: str
+) -> None:
+    conn.execute(
+        "INSERT INTO versions_modele (version, run_id, statut, configuration,"
+        " hash_parametres, par_qui) VALUES (%s, %s, %s, %s, %s, %s)"
+        " ON CONFLICT (version) DO NOTHING",
+        (run.run_id, run.run_id, statut, Jsonb(cfg.valeurs), cfg.empreinte, declencheur),
+    )
+
+
+def _ecrire_evaluation(dossier: Path, resultat: dict) -> str:
+    dossier.mkdir(parents=True, exist_ok=True)
+    chemin = dossier / "evaluation.json"
+    chemin.write_text(json.dumps(resultat, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return str(chemin)
 
 
 def _mots_vides(path: Path) -> list[str]:
