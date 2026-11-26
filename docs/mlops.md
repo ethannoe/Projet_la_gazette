@@ -124,10 +124,88 @@ deviendrait intéressant.
 | Code | `code_version` : le commit git de l'image, suivi de `-modifie` si le code n'était pas commité |
 | Métriques | `metriques` : `nb_themes`, `taille_mediane`, `taille_max`, `part_bruit`, `silhouette`, `embeddings_calcules`, `duree_s` |
 | Artefacts | `artefacts` : les chemins des fichiers de `runs/<run_id>/` ; les thèmes dans `themes`, les rattachements dans `articles_themes` |
-| Exécution | `debut`, `duree_s`, `declencheur` (`pipeline` ou `manuel`), `statut` (`en_cours`, `ok`, `echec`), `erreur` |
+| Exécution | `debut`, `duree_s`, `declencheur` (`pipeline`, `manuel` ou `ci`), `statut` (`en_cours`, `ok`, `echec`), `erreur` |
 
 Le run est inscrit **avant** de commencer (`en_cours`), puis mis à jour : un run qui plante
 reste visible en `echec`, avec son erreur.
+
+## Évaluation, dérive et registre de versions (TD 6)
+
+Les seuils opérationnels sont dans [`config/evaluation.yaml`](../config/evaluation.yaml).
+Chaque run calcule la silhouette, la part d'articles laissés en bruit, la taille relative du
+plus gros thème et le nombre de thèmes. Les seuils initiaux rejettent une silhouette sous
+0,15, plus de 80 % de bruit, un thème représentant plus de 50 % des articles ou zéro thème.
+Ils sont des garde-fous à calibrer avec les relectures de l'équipe, pas une vérité terrain.
+
+À chaque run, un échantillon déterministe de dix articles (ou moins si la fenêtre en contient
+moins) est écrit dans `runs/<run_id>/evaluation.json`, avec le thème attribué, les métriques,
+les seuils et le contrôle de dérive. La relecture humaine est enregistrée en base :
+
+```bash
+docker compose run --rm collecteur relire <run_id> approuve --par "Prénom Nom" \
+  --commentaire "Les dix titres sont cohérents avec leurs thèmes."
+docker compose run --rm collecteur relire <run_id> recale --par "Prénom Nom" \
+  --commentaire "Deux articles sont mal classés dans le thème 3."
+```
+
+Un run sous les seuils reçoit `recale` et **n'écrit aucun thème**. Un run au-dessus des seuils
+devient `candidat`, ou `revue` si la dérive est déclenchée. Dans les deux cas, la promotion
+exige une décision humaine `approuve` enregistrée ; après approbation, un run `revue` devient
+`candidat`. Un refus le marque `recale` et retire ses thèmes de la vue utilisée. Les métriques
+sont internes au clustering ; elles ne remplacent pas le jugement éditorial.
+
+La dérive compare les métriques aux runs des jours précédents. Une hausse de bruit d'au moins
+0,15 ou une baisse de silhouette d'au moins 0,10 pendant le nombre de jours configuré déclenche
+`revue`. Ce verdict, le nombre de jours et les comparaisons sont conservés dans `runs.evaluation`.
+
+La migration `006_evaluation_registre.sql` crée `versions_modele`, `historique_promotions`
+et `relectures_modeles`. La ligne de statut `production` est la source de configuration du
+pipeline. À la première installation, le registre est initialisé depuis
+`config/clustering.yaml`. Ensuite, le pipeline lit la configuration inscrite au registre ;
+modifier le fichier seul ne change donc pas le modèle en service.
+
+```bash
+docker compose run --rm collecteur versions
+docker compose run --rm collecteur promouvoir <version-candidate> --par "CI GitHub"
+docker compose run --rm collecteur retour-arriere --par "Prénom Nom"
+```
+
+La promotion archive l'ancienne version et écrit une ligne d'historique. Le retour arrière
+active la précédente et trace également la bascule ; la même commande permet ensuite de
+revenir à la version qui était en service. Le pipeline n'utilise que la ligne `production`.
+
+### Circuit PR → CI → production
+
+1. Modifier les paramètres dans `config/clustering.yaml` et ouvrir une PR. Les tests vérifient
+   le calcul des métriques, le rejet sans remplacement des thèmes et le registre.
+2. La CI évalue la configuration de la PR sur les articles réels de la journée précédente, via le
+   secret GitHub `GAZETTE_DATABASE_URL`. Le run et son échantillon sont visibles dans l'artifact
+   `evaluation-candidat`.
+3. Une personne inspecte `evaluation.json` depuis l'artifact de la PR et enregistre sa décision
+   dans la base partagée avec `relire <run_id> approuve|recale --par ... --commentaire ...`.
+   La version ne peut être promue que si les seuils passent, la relecture est favorable et la
+   le verdict de dérive a été examiné et l'approbation humaine est enregistrée.
+4. La fusion sur `main` déclenche le job CI de promotion. Il cherche le candidat relu dont
+   l'empreinte correspond exactement à `config/clustering.yaml` et dont le commit de code
+   correspond à la tête de la PR fusionnée, puis inscrit la promotion. Sans candidat
+   correspondant ou si les vérifications ont échoué, le job échoue.
+5. Le déploiement lit la nouvelle ligne `production` au prochain run. Pour revenir en arrière,
+   exécuter `retour-arriere` ; le test de cycle couvre l'aller-retour entre deux versions.
+
+Le job d'évaluation sur données réelles échoue si `GAZETTE_DATABASE_URL` manque. Configurez ce
+secret. Rendez le contrôle `evaluer-candidat` obligatoire dans la protection de `main`. La base
+doit être accessible au runner GitHub ; donnez au compte utilisé les droits
+minimum requis pour lire les articles et écrire les runs, relectures et promotions. Les runs de
+PR ajoutent des traces et des candidats au registre, sans changer la version en service. Les PR
+externes n'ont pas accès au secret et ne peuvent pas exécuter cette évaluation sur les données
+réelles.
+
+La requête de la version en service :
+
+```sql
+SELECT version, run_id, hash_parametres, configuration, promue_le, par_qui
+FROM versions_modele WHERE statut = 'production';
+```
 
 **Rejouer un run** : même fenêtre, mêmes paramètres et même modèle donnent les mêmes thèmes.
 

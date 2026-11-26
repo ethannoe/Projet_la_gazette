@@ -203,6 +203,15 @@ Migration `005_themes.sql`. Le détail et la façon de les lire sont dans [mlops
 | `articles_themes` | article rattaché à un thème | `run_id`, `item_id`, `theme_id`, `probabilite` (force du rattachement, de 0 à 1) ; les articles en bruit n'y sont pas |
 | `themes_du_jour` (vue) | thème du dernier run réussi | les colonnes de `themes`, plus `run_debut` |
 
+### Évaluation et registre (TD 6)
+
+Migration `006_evaluation_registre.sql` : `runs.verdict` porte `revue`, `candidat` ou `recale` ;
+`runs.evaluation` contient les métriques, les contrôles, la dérive et l'échantillon évalué.
+`versions_modele` conserve la configuration et le statut (`production`, `candidate`, `archivee`)
+de chaque version. Une contrainte garantit une seule version `production`. `historique_promotions`
+trace chaque promotion et retour arrière ; `relectures_modeles` conserve la décision, l'échantillon,
+le commentaire et la personne ayant relu.
+
 ### Table `schema_migrations`
 
 | Colonne | Type | Description |

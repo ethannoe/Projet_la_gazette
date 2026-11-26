@@ -60,7 +60,7 @@ def tache_themes(cfg: Config) -> str | None:
     """Le regroupement du jour, tracé dans la table runs ; ne tourne qu'une fois par jour."""
     with db.connect(cfg.database_url) as conn:
         run = pipeline.regrouper(conn, cfg, declencheur="pipeline")
-    if run is None:
+    if run is None or run.verdict == "recale":
         return None
     lignes = [
         f"# Thèmes du run {run.run_id}",

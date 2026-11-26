@@ -1,0 +1,14 @@
+# Seuils d'acceptation et de surveillance des regroupements.
+seuils:
+  silhouette_min: 0.15
+  part_bruit_max: 0.80
+  part_theme_geant_max: 0.50
+  themes_min: 1
+
+echantillon:
+  taille: 10
+
+derive:
+  jours_consecutifs: 2
+  hausse_bruit: 0.15
+  baisse_silhouette: 0.10
